@@ -1,11 +1,13 @@
 ﻿import { useState, useEffect } from "react";
 import { Home, Target, Trophy, Award, Camera, Calendar, Clock } from "lucide-react";
+import UserAuth from "./components/UserAuth";
 
 interface Command {
   id: number;
   name: string;
   practiced: boolean;
   lastPracticed?: string;
+  practicedBy?: string;
 }
 
 interface Milestone {
@@ -14,9 +16,11 @@ interface Milestone {
   completed: boolean;
   photo: string | null;
   completedDate?: string;
+  completedBy?: string;
 }
 
 export default function App() {
+  const [currentUser, setCurrentUser] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("dashboard");
   const [commands, setCommands] = useState<Command[]>([
     { id: 1, name: "Sit", practiced: false },
@@ -35,6 +39,14 @@ export default function App() {
     { id: 6, title: "Mastered Roll Over", completed: false, photo: null },
   ]);
   const [customCommand, setCustomCommand] = useState("");
+
+  // Load user session
+  useEffect(() => {
+    const savedUser = localStorage.getItem("currentUser");
+    if (savedUser) {
+      setCurrentUser(savedUser);
+    }
+  }, []);
 
   // Load data from localStorage
   useEffect(() => {
@@ -59,10 +71,20 @@ export default function App() {
     localStorage.setItem("puppyMilestones", JSON.stringify(milestones));
   }, [milestones]);
 
+  const handleLogin = (username: string) => {
+    setCurrentUser(username);
+    localStorage.setItem("currentUser", username);
+  };
+
+  const handleLogout = () => {
+    setCurrentUser(null);
+    localStorage.removeItem("currentUser");
+  };
+
   const practiceCommand = (id: number) => {
     const today = new Date().toLocaleDateString();
     setCommands(commands.map(cmd => 
-      cmd.id === id ? { ...cmd, practiced: true, lastPracticed: today } : cmd
+      cmd.id === id ? { ...cmd, practiced: true, lastPracticed: today, practicedBy: currentUser || undefined } : cmd
     ));
   };
 
@@ -81,7 +103,7 @@ export default function App() {
   const completeMilestone = (id: number) => {
     const today = new Date().toLocaleDateString();
     setMilestones(milestones.map(milestone => 
-      milestone.id === id ? { ...milestone, completed: true, completedDate: today } : milestone
+      milestone.id === id ? { ...milestone, completed: true, completedDate: today, completedBy: currentUser || undefined } : milestone
     ));
   };
 
@@ -123,11 +145,19 @@ export default function App() {
     "Practice commands with distractions around",
   ];
 
+  // Show login screen if no user is logged in
+  if (!currentUser) {
+    return <UserAuth onLogin={handleLogin} currentUser={currentUser} onLogout={handleLogout} />;
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 flex">
       {/* Left Sidebar */}
       <div className="w-64 bg-white shadow-sm border-r border-gray-200 p-6">
         <h1 className="text-2xl font-bold text-gray-800 mb-8">Puppy Tracker</h1>
+        
+        {/* User Info */}
+        <UserAuth onLogin={handleLogin} currentUser={currentUser} onLogout={handleLogout} />
         
         <nav className="space-y-2">
           <button
@@ -315,7 +345,10 @@ export default function App() {
                   </div>
                   
                   {command.lastPracticed && (
-                    <p className="text-sm text-gray-600 mb-3">Last practiced: {command.lastPracticed}</p>
+                    <div className="text-sm text-gray-600 mb-3">
+                      <p>Last practiced: {command.lastPracticed}</p>
+                      {command.practicedBy && <p className="text-blue-600">by {command.practicedBy}</p>}
+                    </div>
                   )}
                   
                   {!command.practiced && (
@@ -328,7 +361,10 @@ export default function App() {
                   )}
                   
                   {command.practiced && (
-                    <div className="text-green-600 font-medium">Practiced! ✨</div>
+                    <div className="text-green-600 font-medium">
+                      Practiced! ✨
+                      {command.practicedBy && <span className="text-sm text-gray-600"> by {command.practicedBy}</span>}
+                    </div>
                   )}
                 </div>
               ))}
@@ -360,7 +396,10 @@ export default function App() {
                   </div>
 
                   {milestone.completedDate && (
-                    <p className="text-sm text-gray-600 mb-3">Completed: {milestone.completedDate}</p>
+                    <div className="text-sm text-gray-600 mb-3">
+                      <p>Completed: {milestone.completedDate}</p>
+                      {milestone.completedBy && <p className="text-blue-600">by {milestone.completedBy}</p>}
+                    </div>
                   )}
 
                   {milestone.photo && (
