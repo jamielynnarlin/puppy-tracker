@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Puppy Tracker - Bernedoodle Journey</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f9fafb;
+            color: #374151;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+        
+        .feature-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e5e7eb;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+        
+        .feature-card h3 {
+            color: #1f2937;
+            margin-bottom: 1rem;
+            font-size: 1.25rem;
+        }
+        
+        .feature-card p {
+            color: #6b7280;
+            margin-bottom: 1rem;
+        }
+        
+        .feature-list {
+            list-style: none;
+        }
+        
+        .feature-list li {
+            padding: 0.25rem 0;
+            color: #4b5563;
+        }
+        
+        .feature-list li:before {
+            content: "✓ ";
+            color: #10b981;
+            font-weight: bold;
+            margin-right: 0.5rem;
+        }
+        
+        .setup-section {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e5e7eb;
+        }
+        
+        .setup-section h2 {
+            color: #1f2937;
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+        }
+        
+        .setup-steps {
+            counter-reset: step-counter;
+        }
+        
+        .setup-step {
+            counter-increment: step-counter;
+            margin-bottom: 1.5rem;
+            padding-left: 3rem;
+            position: relative;
+        }
+        
+        .setup-step:before {
+            content: counter(step-counter);
+            position: absolute;
+            left: 0;
+            top: 0;
+            background: #3b82f6;
+            color: white;
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.875rem;
+        }
+        
+        .setup-step h3 {
+            color: #1f2937;
+            margin-bottom: 0.5rem;
+        }
+        
+        .setup-step p {
+            color: #6b7280;
+        }
+        
+        .code-block {
+            background: #f3f4f6;
+            padding: 1rem;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.875rem;
+            margin: 0.5rem 0;
+            border-left: 4px solid #3b82f6;
+        }
+        
+        .alert {
+            background: #fef3c7;
+            border: 1px solid #f59e0b;
+            border-radius: 6px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+        
+        .alert-icon {
+            color: #f59e0b;
+            margin-right: 0.5rem;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🐕 Puppy Tracker - Bernedoodle Journey</h1>
+            <p>Expert training programs for your bernedoodle puppy and cat integration</p>
+        </div>
+        
+        <div class="alert">
+            <span class="alert-icon">⚠️</span>
+            <strong>Setup Required:</strong> This is a preview of your puppy tracker. To use the full interactive webapp, please follow the setup instructions below.
+        </div>
+        
+        <div class="features-grid">
+            <div class="feature-card">
+                <span class="feature-icon">📊</span>
+                <h3>Interactive Timeline</h3>
+                <p>Visual timeline of your puppy's journey from 8 weeks onward with milestone tracking</p>
+                <ul class="feature-list">
+                    <li>Age-appropriate milestones</li>
+                    <li>Growth and development tracking</li>
+                    <li>Progress visualization</li>
+                    <li>Photo and memory logging</li>
+                </ul>
+            </div>
+            
+            <div class="feature-card">
+                <span class="feature-icon">🎯</span>
+                <h3>Dogo Training Programs</h3>
+                <p>100+ expert-designed training programs that take the guesswork out of puppy training</p>
+                <ul class="feature-list">
+                    <li>Potty training mastery</li>
+                    <li>Basic commands (sit, stay, come)</li>
+                    <li>Leash training & socialization</li>
+                    <li>Advanced tricks and skills</li>
+                    <li>Behavior problem solving</li>
+                </ul>
+            </div>
+            
+            <div class="feature-card">
+                <span class="feature-icon">🐱</span>
+                <h3>Cat Integration Safety</h3>
+                <p>Specialized programs for safely introducing your bernedoodle to your 4-year-old cat</p>
+                <ul class="feature-list">
+                    <li>Step-by-step introduction guide</li>
+                    <li>Safety checklist for multi-pet homes</li>
+                    <li>Reaction monitoring for both pets</li>
+                    <li>Progress stages and next steps</li>
+                </ul>
+            </div>
+            
+            <div class="feature-card">
+                <span class="feature-icon">🛠️</span>
+                <h3>Interactive Training Tools</h3>
+                <p>Built-in clicker, whistle, and timer for precise training sessions</p>
+                <ul class="feature-list">
+                    <li>Training clicker for marking behavior</li>
+                    <li>Recall whistle for distance training</li>
+                    <li>Session timer for optimal training</li>
+                    <li>Progress tracking dashboard</li>
+                </ul>
+            </div>
+            
+            <div class="feature-card">
+                <span class="feature-icon">📝</span>
+                <h3>Daily Activity Logging</h3>
+                <p>Quick and easy logging for busy pet parents</p>
+                <ul class="feature-list">
+                    <li>Potty training success tracking</li>
+                    <li>Meal times and eating habits</li>
+                    <li>Exercise and play sessions</li>
+                    <li>Health records and vet visits</li>
+                </ul>
+            </div>
+            
+            <div class="feature-card">
+                <span class="feature-icon">👨‍🏫</span>
+                <h3>Professional Trainer Feedback</h3>
+                <p>Submit videos and get personalized advice from certified trainers</p>
+                <ul class="feature-list">
+                    <li>Video upload for expert review</li>
+                    <li>Bernedoodle-specific guidance</li>
+                    <li>Behavior problem consultation</li>
+                    <li>Training plan customization</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="setup-section">
+            <h2>🚀 Get Your Puppy Tracker Running</h2>
+            
+            <div class="setup-steps">
+                <div class="setup-step">
+                    <h3>Install Node.js</h3>
+                    <p>Download and install Node.js from <strong>nodejs.org</strong> (choose the LTS version)</p>
+                    <div class="code-block">https://nodejs.org/</div>
+                </div>
+                
+                <div class="setup-step">
+                    <h3>Open Terminal in VS Code</h3>
+                    <p>Press <strong>Ctrl + `</strong> to open the integrated terminal in VS Code</p>
+                </div>
+                
+                <div class="setup-step">
+                    <h3>Install Dependencies</h3>
+                    <p>Run this command to install all required packages:</p>
+                    <div class="code-block">npm install</div>
+                </div>
+                
+                <div class="setup-step">
+                    <h3>Start the Development Server</h3>
+                    <p>Launch your puppy tracker webapp:</p>
+                    <div class="code-block">npm run dev</div>
+                    <p>This will open your browser to <strong>http://localhost:5173</strong> where you can start tracking your bernedoodle's journey!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
