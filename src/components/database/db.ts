@@ -79,6 +79,49 @@ export interface ProgressInsight {
   created_at: Date;
 }
 
+export interface WeightEntry {
+  id?: number;
+  date: string;
+  weight: number;
+  unit: 'lbs' | 'kg';
+  weekNumber: number;
+  loggedBy: string;
+  notes?: string;
+  created_at: Date;
+}
+
+export interface ToothLog {
+  id?: number;
+  toothType: string;
+  dateNoticed: string;
+  notes?: string;
+  loggedBy: string;
+  created_at: Date;
+}
+
+export interface GroomingLog {
+  id?: number;
+  activity: 'brushing' | 'nail-trim' | 'ear-cleaning' | 'bath' | 'paw-handling' | 'mouth-touching' | 'other';
+  date: string;
+  duration: string;
+  tolerance: number;
+  notes?: string;
+  loggedBy: string;
+  created_at: Date;
+}
+
+export interface FearLog {
+  id?: number;
+  trigger: string;
+  date: string;
+  intensity: 'mild' | 'moderate' | 'severe';
+  response: string;
+  duration?: string;
+  notes?: string;
+  loggedBy: string;
+  created_at: Date;
+}
+
 // Database class
 export class PuppyTrackerDB extends Dexie {
   potty_logs!: Table<PottyLog>;
@@ -88,6 +131,10 @@ export class PuppyTrackerDB extends Dexie {
   daily_routines!: Table<DailyRoutine>;
   milestones!: Table<Milestone>;
   progress_insights!: Table<ProgressInsight>;
+  weight_entries!: Table<WeightEntry>;
+  tooth_logs!: Table<ToothLog>;
+  grooming_logs!: Table<GroomingLog>;
+  fear_logs!: Table<FearLog>;
 
   constructor() {
     super('PuppyTrackerDB');
@@ -99,7 +146,11 @@ export class PuppyTrackerDB extends Dexie {
       appointments: '++id, title, date, time, type, completed, created_at',
       daily_routines: '++id, date, created_at',
       milestones: '++id, name, category, completed, completed_date, target_date, created_at',
-      progress_insights: '++id, date, metric_type, value, created_at'
+      progress_insights: '++id, date, metric_type, value, created_at',
+      weight_entries: '++id, date, weekNumber, loggedBy, created_at',
+      tooth_logs: '++id, toothType, dateNoticed, loggedBy, created_at',
+      grooming_logs: '++id, activity, date, loggedBy, created_at',
+      fear_logs: '++id, trigger, date, intensity, loggedBy, created_at'
     });
   }
 }

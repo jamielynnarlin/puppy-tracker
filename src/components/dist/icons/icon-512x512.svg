@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Background circle -->
+  <circle cx="256" cy="256" r="256" fill="#3b82f6"/>
+  
+  <!-- Puppy face -->
+  <circle cx="256" cy="220" r="120" fill="#f59e0b"/>
+  
+  <!-- Ears -->
+  <ellipse cx="200" cy="150" rx="30" ry="50" fill="#d97706"/>
+  <ellipse cx="312" cy="150" rx="30" ry="50" fill="#d97706"/>
+  
+  <!-- Eyes -->
+  <circle cx="230" cy="200" r="15" fill="#1f2937"/>
+  <circle cx="282" cy="200" r="15" fill="#1f2937"/>
+  <circle cx="234" cy="196" r="5" fill="#ffffff"/>
+  <circle cx="286" cy="196" r="5" fill="#ffffff"/>
+  
+  <!-- Nose -->
+  <ellipse cx="256" cy="230" rx="8" ry="6" fill="#1f2937"/>
+  
+  <!-- Mouth -->
+  <path d="M256 240 Q245 250 235 245 Q256 260 277 245 Q266 250 256 240" fill="#1f2937"/>
+  
+  <!-- Collar with tag -->
+  <rect x="200" y="320" width="112" height="20" rx="10" fill="#ef4444"/>
+  <circle cx="256" cy="350" r="12" fill="#fbbf24"/>
+  <text x="256" y="355" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#1f2937">🏆</text>
+  
+  <!-- Training elements -->
+  <circle cx="150" cy="400" r="25" fill="#10b981"/>
+  <text x="150" y="408" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" fill="#ffffff">✓</text>
+  
+  <circle cx="362" cy="400" r="25" fill="#8b5cf6"/>
+  <text x="362" y="408" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" fill="#ffffff">📊</text>
+</svg>

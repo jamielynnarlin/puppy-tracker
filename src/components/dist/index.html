@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <!-- App Title and Description -->
+    <title>PuppyTrainer Pro - Track Your Puppy's Training Progress</title>
+    <meta name="description" content="Track your puppy's training progress, daily routine, potty breaks, feeding schedule, and milestones with PuppyTrainer Pro" />
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#3b82f6" />
+    <meta name="background-color" content="#1f2937" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="PuppyTrainer Pro" />
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json" />
+    
+    <!-- App Icons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-72x72.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/icons/icon-72x72.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/icon-192x192.png" />
+    <link rel="apple-touch-icon" sizes="152x152" href="/icons/icon-152x152.png" />
+    <link rel="apple-touch-icon" sizes="144x144" href="/icons/icon-144x144.png" />
+    <link rel="apple-touch-icon" sizes="120x120" href="/icons/icon-128x128.png" />
+    <link rel="apple-touch-icon" sizes="114x114" href="/icons/icon-128x128.png" />
+    <link rel="apple-touch-icon" sizes="76x76" href="/icons/icon-96x96.png" />
+    <link rel="apple-touch-icon" sizes="72x72" href="/icons/icon-72x72.png" />
+    <link rel="apple-touch-icon" sizes="60x60" href="/icons/icon-72x72.png" />
+    <link rel="apple-touch-icon" sizes="57x57" href="/icons/icon-72x72.png" />
+    
+    <!-- Microsoft Tiles -->
+    <meta name="msapplication-TileColor" content="#3b82f6" />
+    <meta name="msapplication-TileImage" content="/icons/icon-144x144.png" />
+    <meta name="msapplication-config" content="/browserconfig.xml" />
+    
+    <!-- Open Graph / Social Media -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="PuppyTrainer Pro" />
+    <meta property="og:description" content="Track your puppy's training progress, daily routine, and milestones" />
+    <meta property="og:image" content="/icons/icon-512x512.png" />
+    <meta property="og:url" content="/" />
+    <meta name="twitter:card" content="summary_large_image" />
+    
+    <!-- Preload critical resources -->
+    <link rel="preload" href="/icons/icon-192x192.png" as="image" />
+    <script type="module" crossorigin src="/assets/main-B4HtedZe.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/main-D4lHjUDZ.css">
+  </head>
+  <body>
+    <div id="root"></div>
+
+    
+    <!-- Service Worker Registration -->
+    <script>
+      // Register service worker for PWA functionality
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', async () => {
+          try {
+            const registration = await navigator.serviceWorker.register('/sw.js');
+            console.log('🐕 PuppyTrainer Pro Service Worker registered successfully:', registration.scope);
+            
+            // Check for updates
+            registration.addEventListener('updatefound', () => {
+              const newWorker = registration.installing;
+              if (newWorker) {
+                newWorker.addEventListener('statechange', () => {
+                  if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                    // New version available, could show update notification
+                    console.log('🔄 New version of PuppyTrainer Pro available');
+                  }
+                });
+              }
+            });
+            
+          } catch (error) {
+            console.error('❌ Service Worker registration failed:', error);
+          }
+        });
+
+        // Listen for app install prompt
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+          console.log('💾 Install prompt available');
+          e.preventDefault();
+          deferredPrompt = e;
+          
+          // Could show custom install button here
+          // For now, just log that installation is available
+          console.log('📱 PuppyTrainer Pro can be installed as an app');
+        });
+
+        window.addEventListener('appinstalled', () => {
+          console.log('🎉 PuppyTrainer Pro has been installed!');
+          deferredPrompt = null;
+        });
+      }
+    </script>
+  </body>
+</html>

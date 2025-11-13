@@ -1,4 +1,4 @@
-import { db, PottyLog, TrainingSession, Command, Appointment, DailyRoutine, Milestone, ProgressInsight } from './db';
+import { db, PottyLog, TrainingSession, Command, Appointment, DailyRoutine, Milestone, ProgressInsight, WeightEntry, ToothLog, GroomingLog, FearLog } from './db';
 
 export class PottyService {
   static async addLog(log: Omit<PottyLog, 'id' | 'created_at'>): Promise<number> {
@@ -217,5 +217,73 @@ export class AnalyticsService {
       ...insight,
       created_at: new Date()
     });
+  }
+}
+
+export class WeightService {
+  static async addEntry(entry: Omit<WeightEntry, 'id' | 'created_at'>): Promise<number> {
+    return await db.weight_entries.add({
+      ...entry,
+      created_at: new Date()
+    });
+  }
+
+  static async getAllEntries(): Promise<WeightEntry[]> {
+    return await db.weight_entries.orderBy('date').toArray();
+  }
+
+  static async deleteEntry(id: number): Promise<void> {
+    await db.weight_entries.delete(id);
+  }
+}
+
+export class ToothLogService {
+  static async addLog(log: Omit<ToothLog, 'id' | 'created_at'>): Promise<number> {
+    return await db.tooth_logs.add({
+      ...log,
+      created_at: new Date()
+    });
+  }
+
+  static async getAllLogs(): Promise<ToothLog[]> {
+    return await db.tooth_logs.orderBy('dateNoticed').reverse().toArray();
+  }
+
+  static async deleteLog(id: number): Promise<void> {
+    await db.tooth_logs.delete(id);
+  }
+}
+
+export class GroomingLogService {
+  static async addLog(log: Omit<GroomingLog, 'id' | 'created_at'>): Promise<number> {
+    return await db.grooming_logs.add({
+      ...log,
+      created_at: new Date()
+    });
+  }
+
+  static async getAllLogs(): Promise<GroomingLog[]> {
+    return await db.grooming_logs.orderBy('date').reverse().toArray();
+  }
+
+  static async deleteLog(id: number): Promise<void> {
+    await db.grooming_logs.delete(id);
+  }
+}
+
+export class FearLogService {
+  static async addLog(log: Omit<FearLog, 'id' | 'created_at'>): Promise<number> {
+    return await db.fear_logs.add({
+      ...log,
+      created_at: new Date()
+    });
+  }
+
+  static async getAllLogs(): Promise<FearLog[]> {
+    return await db.fear_logs.orderBy('date').reverse().toArray();
+  }
+
+  static async deleteLog(id: number): Promise<void> {
+    await db.fear_logs.delete(id);
   }
 }

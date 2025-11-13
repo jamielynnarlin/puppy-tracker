@@ -1,6 +1,8 @@
 ﻿import { useState, useEffect } from "react";
 import { Home, Target, Trophy, Award, Camera, Calendar, Clock, Download, Bell, Trash2, Check, ChevronDown, ChevronRight, FileText, X, Upload, RefreshCw, Scale, Activity } from "lucide-react";
 import UserAuth from "./UserAuth";
+import { usePuppyDatabase } from "./database/usePuppyDatabase";
+import { DataMigration } from "./database/migration";
 
 interface PottyLog {
   id: number;
@@ -205,11 +207,23 @@ export default function App() {
     setExpandedMilestones(newExpanded);
   };
 
-  // Physical Development states
-  const [weightEntries, setWeightEntries] = useState<WeightEntry[]>([]);
-  const [toothLogs, setToothLogs] = useState<ToothLog[]>([]);
-  const [groomingLogs, setGroomingLogs] = useState<GroomingLog[]>([]);
-  const [fearLogs, setFearLogs] = useState<FearLog[]>([]);
+  // Initialize database hook
+  const {
+    weightEntries,
+    toothLogs,
+    groomingLogs,
+    fearLogs,
+    addWeightEntry: saveWeightEntry,
+    deleteWeightEntry: removeWeightEntry,
+    addToothLog: saveToothLog,
+    deleteToothLog: removeToothLog,
+    addGroomingLog: saveGroomingLog,
+    deleteGroomingLog: removeGroomingLog,
+    addFearLog: saveFearLog,
+    deleteFearLog: removeFearLog,
+    isLoading: dbLoading,
+    error: dbError
+  } = usePuppyDatabase();
 
   // Physical Development modal states
   const [showWeightModal, setShowWeightModal] = useState(false);
@@ -248,15 +262,23 @@ export default function App() {
     // }
   }, []);
 
-  // Load data from localStorage
+  // Migrate data from localStorage to database on first load
+  useEffect(() => {
+    const migrateData = async () => {
+      try {
+        await DataMigration.migrateFromLocalStorage();
+      } catch (error) {
+        console.error('Migration error:', error);
+      }
+    };
+    migrateData();
+  }, []);
+
+  // Load data from localStorage (only for commands, milestones, appointments - will migrate these later)
   useEffect(() => {
     const savedCommands = localStorage.getItem("puppyCommands");
     const savedMilestones = localStorage.getItem("puppyMilestones");
     const savedAppointments = localStorage.getItem("puppyAppointments");
-    const savedWeightEntries = localStorage.getItem("puppyWeightEntries");
-    const savedToothLogs = localStorage.getItem("puppyToothLogs");
-    const savedGroomingLogs = localStorage.getItem("puppyGroomingLogs");
-    const savedFearLogs = localStorage.getItem("puppyFearLogs");
     
     if (savedCommands) {
       setCommands(JSON.parse(savedCommands));
@@ -266,18 +288,6 @@ export default function App() {
     }
     if (savedAppointments) {
       setAppointments(JSON.parse(savedAppointments));
-    }
-    if (savedWeightEntries) {
-      setWeightEntries(JSON.parse(savedWeightEntries));
-    }
-    if (savedToothLogs) {
-      setToothLogs(JSON.parse(savedToothLogs));
-    }
-    if (savedGroomingLogs) {
-      setGroomingLogs(JSON.parse(savedGroomingLogs));
-    }
-    if (savedFearLogs) {
-      setFearLogs(JSON.parse(savedFearLogs));
     }
   }, []);
 
@@ -296,22 +306,8 @@ export default function App() {
     localStorage.setItem("puppyAppointments", JSON.stringify(appointments));
   }, [appointments]);
 
-  // Save physical development data to localStorage
-  useEffect(() => {
-    localStorage.setItem("puppyWeightEntries", JSON.stringify(weightEntries));
-  }, [weightEntries]);
-
-  useEffect(() => {
-    localStorage.setItem("puppyToothLogs", JSON.stringify(toothLogs));
-  }, [toothLogs]);
-
-  useEffect(() => {
-    localStorage.setItem("puppyGroomingLogs", JSON.stringify(groomingLogs));
-  }, [groomingLogs]);
-
-  useEffect(() => {
-    localStorage.setItem("puppyFearLogs", JSON.stringify(fearLogs));
-  }, [fearLogs]);
+  // Note: Physical development data (weight, tooth, grooming, fear logs) 
+  // are now saved automatically via the database hook, no need for localStorage
 
   const handleLogin = (username: string) => {
     setCurrentUser(username);
@@ -589,15 +585,14 @@ export default function App() {
   };
 
   // Physical Development handlers
-  const addWeightEntry = () => {
+  const addWeightEntry = async () => {
     if (!currentUser || !weightValue || !weightWeek) {
       alert('Please fill in required fields (weight, week number)');
       return;
     }
 
     const today = new Date().toISOString().split('T')[0];
-    const newEntry: WeightEntry = {
-      id: Date.now(),
+    const newEntry = {
       date: today,
       weight: parseFloat(weightValue),
       unit: weightUnit,
@@ -606,42 +601,50 @@ export default function App() {
       notes: weightNotes || undefined
     };
 
-    setWeightEntries([...weightEntries, newEntry].sort((a, b) => a.weekNumber - b.weekNumber));
-    setShowWeightModal(false);
-    setWeightValue('');
-    setWeightWeek('');
-    setWeightNotes('');
+    try {
+      await saveWeightEntry(newEntry);
+      setShowWeightModal(false);
+      setWeightValue('');
+      setWeightWeek('');
+      setWeightNotes('');
+    } catch (error) {
+      console.error('Failed to add weight entry:', error);
+      alert('Failed to save weight entry. Please try again.');
+    }
   };
 
-  const addToothLog = () => {
+  const addToothLog = async () => {
     if (!currentUser || !toothType || !toothDate) {
       alert('Please fill in required fields (tooth type, date)');
       return;
     }
 
-    const newLog: ToothLog = {
-      id: Date.now(),
+    const newLog = {
       toothType,
       dateNoticed: toothDate,
       notes: toothNotes || undefined,
       loggedBy: currentUser
     };
 
-    setToothLogs([...toothLogs, newLog]);
-    setShowToothModal(false);
-    setToothType('');
-    setToothDate('');
-    setToothNotes('');
+    try {
+      await saveToothLog(newLog);
+      setShowToothModal(false);
+      setToothType('');
+      setToothDate('');
+      setToothNotes('');
+    } catch (error) {
+      console.error('Failed to add tooth log:', error);
+      alert('Failed to save tooth log. Please try again.');
+    }
   };
 
-  const addGroomingLog = () => {
+  const addGroomingLog = async () => {
     if (!currentUser || !groomingDate || !groomingDuration) {
       alert('Please fill in required fields (date, duration)');
       return;
     }
 
-    const newLog: GroomingLog = {
-      id: Date.now(),
+    const newLog = {
       activity: groomingActivity,
       date: groomingDate,
       duration: groomingDuration,
@@ -650,22 +653,26 @@ export default function App() {
       loggedBy: currentUser
     };
 
-    setGroomingLogs([...groomingLogs, newLog]);
-    setShowGroomingModal(false);
-    setGroomingDate('');
-    setGroomingDuration('');
-    setGroomingTolerance(5);
-    setGroomingNotes('');
+    try {
+      await saveGroomingLog(newLog);
+      setShowGroomingModal(false);
+      setGroomingDate('');
+      setGroomingDuration('');
+      setGroomingTolerance(5);
+      setGroomingNotes('');
+    } catch (error) {
+      console.error('Failed to add grooming log:', error);
+      alert('Failed to save grooming log. Please try again.');
+    }
   };
 
-  const addFearLog = () => {
+  const addFearLog = async () => {
     if (!currentUser || !fearTrigger || !fearDate || !fearResponse) {
       alert('Please fill in required fields (trigger, date, response)');
       return;
     }
 
-    const newLog: FearLog = {
-      id: Date.now(),
+    const newLog = {
       trigger: fearTrigger,
       date: fearDate,
       intensity: fearIntensity,
@@ -675,36 +682,61 @@ export default function App() {
       loggedBy: currentUser
     };
 
-    setFearLogs([...fearLogs, newLog]);
-    setShowFearModal(false);
-    setFearTrigger('');
-    setFearDate('');
-    setFearResponse('');
-    setFearDuration('');
-    setFearNotes('');
+    try {
+      await saveFearLog(newLog);
+      setShowFearModal(false);
+      setFearTrigger('');
+      setFearDate('');
+      setFearResponse('');
+      setFearDuration('');
+      setFearNotes('');
+    } catch (error) {
+      console.error('Failed to add fear log:', error);
+      alert('Failed to save fear log. Please try again.');
+    }
   };
 
-  const deleteWeightEntry = (id: number) => {
+  const deleteWeightEntry = async (id: number) => {
     if (window.confirm('Are you sure you want to delete this weight entry?')) {
-      setWeightEntries(weightEntries.filter(entry => entry.id !== id));
+      try {
+        await removeWeightEntry(id);
+      } catch (error) {
+        console.error('Failed to delete weight entry:', error);
+        alert('Failed to delete weight entry. Please try again.');
+      }
     }
   };
 
-  const deleteToothLog = (id: number) => {
+  const deleteToothLog = async (id: number) => {
     if (window.confirm('Are you sure you want to delete this tooth log?')) {
-      setToothLogs(toothLogs.filter(log => log.id !== id));
+      try {
+        await removeToothLog(id);
+      } catch (error) {
+        console.error('Failed to delete tooth log:', error);
+        alert('Failed to delete tooth log. Please try again.');
+      }
     }
   };
 
-  const deleteGroomingLog = (id: number) => {
+  const deleteGroomingLog = async (id: number) => {
     if (window.confirm('Are you sure you want to delete this grooming log?')) {
-      setGroomingLogs(groomingLogs.filter(log => log.id !== id));
+      try {
+        await removeGroomingLog(id);
+      } catch (error) {
+        console.error('Failed to delete grooming log:', error);
+        alert('Failed to delete grooming log. Please try again.');
+      }
     }
   };
 
-  const deleteFearLog = (id: number) => {
+  const deleteFearLog = async (id: number) => {
     if (window.confirm('Are you sure you want to delete this fear log?')) {
-      setFearLogs(fearLogs.filter(log => log.id !== id));
+      try {
+        await removeFearLog(id);
+      } catch (error) {
+        console.error('Failed to delete fear log:', error);
+        alert('Failed to delete fear log. Please try again.');
+      }
     }
   };
 
@@ -737,10 +769,6 @@ export default function App() {
       {/* Left Sidebar */}
       <div className="w-64 bg-white shadow-sm border-r border-gray-200 p-6">
         <h1 className="text-2xl font-bold text-gray-800 mb-8">Puppy Tracker</h1>
-        
-        {/* User Info */}
-        <UserAuth onLogin={handleLogin} currentUser={currentUser} onLogout={handleLogout} />
-        
         <nav className="space-y-2">
           <button
             onClick={() => setActiveTab("dashboard")}
@@ -808,20 +836,11 @@ export default function App() {
       <div className="flex-1 p-8">
         {activeTab === "dashboard" && (
           <div>
-            <h2 className="text-3xl font-bold text-gray-800 mb-8">Dashboard</h2>
+            <h2 className="text-3xl font-bold text-gray-800 mb-8">Welcome back, {currentUser}!</h2>
             
             {/* Growth Chart */}
             <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 mb-8">
               <h3 className="text-2xl font-bold text-gray-800 mb-6">📈 Puppy Growth Timeline</h3>
-              
-              {/* Adoption countdown - MOVED TO TOP */}
-              <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border-2 border-purple-200">
-                <div className="text-center">
-                  <p className="text-lg font-semibold text-gray-700 mb-2">Days Until Adoption Day!</p>
-                  <p className="text-4xl font-bold text-purple-600">25 days</p>
-                  <p className="text-sm text-gray-600 mt-2">November 7th, 2025 🏠</p>
-                </div>
-              </div>
 
               <div className="space-y-4">
                 <div className="p-4 bg-purple-50 border-2 border-purple-200 rounded-lg">
@@ -830,6 +849,7 @@ export default function App() {
                     <span className="text-sm bg-purple-200 px-3 py-1 rounded-full">Week 8</span>
                   </div>
                   <p className="text-gray-600 mt-2">Puppy comes home</p>
+                  <p className="text-sm text-gray-500 mt-1">November 7th, 2025</p>
                 </div>
 
                 <div className="p-4 bg-blue-50 border-2 border-blue-200 rounded-lg">
@@ -838,6 +858,7 @@ export default function App() {
                     <span className="text-sm bg-blue-200 px-3 py-1 rounded-full">Week 10</span>
                   </div>
                   <p className="text-gray-600 mt-2">Begin vaccination schedule</p>
+                  <p className="text-sm text-gray-500 mt-1">November 21st, 2025</p>
                 </div>
 
                 <div className="p-4 bg-green-50 border-2 border-green-200 rounded-lg">
@@ -846,6 +867,7 @@ export default function App() {
                     <span className="text-sm bg-green-200 px-3 py-1 rounded-full">Week 12</span>
                   </div>
                   <p className="text-gray-600 mt-2">Critical socialization window</p>
+                  <p className="text-sm text-gray-500 mt-1">December 5th, 2025</p>
                 </div>
 
                 <div className="p-4 bg-yellow-50 border-2 border-yellow-200 rounded-lg">
@@ -854,6 +876,7 @@ export default function App() {
                     <span className="text-sm bg-yellow-200 px-3 py-1 rounded-full">Week 16</span>
                   </div>
                   <p className="text-gray-600 mt-2">Start formal training</p>
+                  <p className="text-sm text-gray-500 mt-1">January 2nd, 2026</p>
                 </div>
 
                 <div className="p-4 bg-orange-50 border-2 border-orange-200 rounded-lg">
@@ -862,6 +885,7 @@ export default function App() {
                     <span className="text-sm bg-orange-200 px-3 py-1 rounded-full">Week 20</span>
                   </div>
                   <p className="text-gray-600 mt-2">Adult teeth coming in</p>
+                  <p className="text-sm text-gray-500 mt-1">January 30th, 2026</p>
                 </div>
 
                 <div className="p-4 bg-pink-50 border-2 border-pink-200 rounded-lg">
@@ -870,6 +894,7 @@ export default function App() {
                     <span className="text-sm bg-pink-200 px-3 py-1 rounded-full">Week 26</span>
                   </div>
                   <p className="text-gray-600 mt-2">Rapid growth phase</p>
+                  <p className="text-sm text-gray-500 mt-1">March 13th, 2026</p>
                 </div>
 
                 <div className="p-4 bg-indigo-50 border-2 border-indigo-200 rounded-lg">
@@ -878,6 +903,7 @@ export default function App() {
                     <span className="text-sm bg-indigo-200 px-3 py-1 rounded-full">Week 52</span>
                   </div>
                   <p className="text-gray-600 mt-2">Approaching adulthood</p>
+                  <p className="text-sm text-gray-500 mt-1">November 5th, 2026</p>
                 </div>
               </div>
             </div>
@@ -1728,7 +1754,7 @@ export default function App() {
                           {entry.notes && <p className="text-sm text-gray-600 mt-1 italic">{entry.notes}</p>}
                         </div>
                         <button
-                          onClick={() => deleteWeightEntry(entry.id)}
+                          onClick={() => entry.id && deleteWeightEntry(entry.id)}
                           className="text-red-500 hover:text-red-700"
                         >
                           <Trash2 size={16} />
@@ -1763,7 +1789,7 @@ export default function App() {
                           {log.notes && <p className="text-sm text-gray-600 mt-1 italic">{log.notes}</p>}
                         </div>
                         <button
-                          onClick={() => deleteToothLog(log.id)}
+                          onClick={() => log.id && deleteToothLog(log.id)}
                           className="text-red-500 hover:text-red-700"
                         >
                           <Trash2 size={16} />
@@ -1802,7 +1828,7 @@ export default function App() {
                           {log.notes && <p className="text-sm text-gray-600 mt-1 italic">{log.notes}</p>}
                         </div>
                         <button
-                          onClick={() => deleteGroomingLog(log.id)}
+                          onClick={() => log.id && deleteGroomingLog(log.id)}
                           className="text-red-500 hover:text-red-700"
                         >
                           <Trash2 size={16} />
@@ -1852,7 +1878,7 @@ export default function App() {
                           {log.notes && <p className="text-sm text-gray-600 mt-1 italic">{log.notes}</p>}
                         </div>
                         <button
-                          onClick={() => deleteFearLog(log.id)}
+                          onClick={() => log.id && deleteFearLog(log.id)}
                           className="text-red-500 hover:text-red-700"
                         >
                           <Trash2 size={16} />

@@ -1,0 +1,19 @@
+﻿// Start server with database initialization
+(async () => {
+  try {
+    await initDB();
+    console.log(' Database initialized');
+    
+    app.listen(PORT, () => {
+      console.log(' Puppy Tracker API running on http://localhost:' + PORT);
+      console.log(' Health check: http://localhost:' + PORT + '/api/health');
+    });
+  } catch (error) {
+    console.error(' Failed to initialize database:', error);
+    process.exit(1);
+  }
+})();
+
+// Graceful shutdown
+process.on('SIGTERM', () => {
+  console.log('SIGTERM signal received: closing HTTP server');
