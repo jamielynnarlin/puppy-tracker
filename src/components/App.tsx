@@ -1,16 +1,38 @@
 ﻿import { useState, useEffect } from "react";
-import { Home, Target, Trophy, Award, Camera, Calendar, Clock, Download, Bell, Trash2, Check, ChevronDown, ChevronRight, FileText, X, Upload, RefreshCw, Scale, Activity } from "lucide-react";
+import { Home, Target, Trophy, Award, Camera, Calendar, Clock, Download, Bell, Trash2, Check, ChevronDown, ChevronRight, FileText, X, Upload, RefreshCw, Scale, Activity, Edit } from "lucide-react";
 import UserAuth from "./UserAuth";
 import { usePuppyDatabase } from "./database/usePuppyDatabase";
 import { DataMigration } from "./database/migration";
 
 interface PottyLog {
   id: number;
-  type: 'pee' | 'poop';
+  type: 'pee' | 'poop' | 'both';
   time: string;
   location: 'inside' | 'outside';
   loggedBy: string;
   date: string;
+  notes?: string;
+}
+
+interface MealLog {
+  id: number;
+  mealType: 'breakfast' | 'lunch' | 'dinner' | 'snack';
+  time: string;
+  amount?: string;
+  food?: string;
+  loggedBy: string;
+  date: string;
+  notes?: string;
+}
+
+interface NapLog {
+  id: number;
+  startTime: string;
+  endTime?: string;
+  location: string;
+  loggedBy: string;
+  date: string;
+  notes?: string;
 }
 
 interface PracticeLog {
@@ -33,6 +55,8 @@ interface Command {
   practicedBy?: string;
   ageWeek?: number;
   pottyLogs?: PottyLog[];
+  mealLogs?: MealLog[];
+  napLogs?: NapLog[];
   practiceLogs?: PracticeLog[];
 }
 
@@ -108,56 +132,96 @@ export default function App() {
   
   // Debug log
   console.log("Current user state:", currentUser);
-  const [commands, setCommands] = useState<Command[]>([
-    // Week 8-10 Commands
-    { id: 1, name: "Potty Training", practiced: false, ageWeek: 8 },
-    { id: 2, name: "Crate Training", practiced: false, ageWeek: 8 },
-    { id: 3, name: "Name Recognition", practiced: false, ageWeek: 8 },
-    { id: 4, name: "Sit", practiced: false, ageWeek: 8 },
-    { id: 5, name: "Come", practiced: false, ageWeek: 8 },
-    { id: 6, name: "Chewing on Toys", practiced: false, ageWeek: 8 },
-    { id: 7, name: "Socialization", practiced: false, ageWeek: 8 },
-    { id: 8, name: "Handling (paws, ears, mouth)", practiced: false, ageWeek: 8 },
-    
-    // Week 12-16 Commands
-    { id: 9, name: "Stay", practiced: false, ageWeek: 12 },
-    { id: 10, name: "Down", practiced: false, ageWeek: 12 },
-    { id: 11, name: "Leave It", practiced: false, ageWeek: 12 },
-    { id: 12, name: "Drop It", practiced: false, ageWeek: 12 },
-    { id: 13, name: "Leash Walking", practiced: false, ageWeek: 12 },
-    { id: 14, name: "Wait", practiced: false, ageWeek: 12 },
-    
-    // Week 20-26 Commands
-    { id: 15, name: "Heel", practiced: false, ageWeek: 20 },
-    { id: 16, name: "Place/Go to Bed", practiced: false, ageWeek: 20 },
-    { id: 17, name: "Quiet", practiced: false, ageWeek: 20 },
-    { id: 18, name: "Off", practiced: false, ageWeek: 20 },
-    { id: 19, name: "Settle", practiced: false, ageWeek: 20 },
-    
-    // Week 26-52 Advanced Commands
-    { id: 20, name: "Roll Over", practiced: false, ageWeek: 26 },
-    { id: 21, name: "Shake/Paw", practiced: false, ageWeek: 26 },
-    { id: 22, name: "Spin", practiced: false, ageWeek: 26 },
-    { id: 23, name: "Fetch", practiced: false, ageWeek: 26 },
-    { id: 24, name: "Distance Commands", practiced: false, ageWeek: 26 },
-    { id: 25, name: "Advanced Stay", practiced: false, ageWeek: 26 },
-  ]);
-  const [milestones, setMilestones] = useState<Milestone[]>([
-    { id: 1, title: "First Vet Visit", completed: false, photo: null },
-    { id: 2, title: "First Walk", completed: false, photo: null },
-    { id: 3, title: "House Trained", completed: false, photo: null },
-    { id: 4, title: "Learned to Sit", completed: false, photo: null },
-    { id: 5, title: "First Successful Stay", completed: false, photo: null },
-    { id: 6, title: "Mastered Roll Over", completed: false, photo: null },
-  ]);
+  
+  // Initialize commands from localStorage or use defaults
+  const [commands, setCommands] = useState<Command[]>(() => {
+    const savedCommands = localStorage.getItem("puppyCommands");
+    if (savedCommands) {
+      return JSON.parse(savedCommands);
+    }
+    return [
+      // Week 8-10 Commands
+      { id: 1, name: "Potty Training", practiced: false, ageWeek: 8 },
+      { id: 2, name: "Crate Training", practiced: false, ageWeek: 8 },
+      { id: 3, name: "Name Recognition", practiced: false, ageWeek: 8 },
+      { id: 4, name: "Sit", practiced: false, ageWeek: 8 },
+      { id: 5, name: "Come", practiced: false, ageWeek: 8 },
+      { id: 6, name: "Chewing on Toys", practiced: false, ageWeek: 8 },
+      { id: 7, name: "Socialization", practiced: false, ageWeek: 8 },
+      { id: 8, name: "Handling (paws, ears, mouth)", practiced: false, ageWeek: 8 },
+      
+      // Week 12-16 Commands
+      { id: 9, name: "Stay", practiced: false, ageWeek: 12 },
+      { id: 10, name: "Down", practiced: false, ageWeek: 12 },
+      { id: 11, name: "Leave It", practiced: false, ageWeek: 12 },
+      { id: 12, name: "Drop It", practiced: false, ageWeek: 12 },
+      { id: 13, name: "Leash Walking", practiced: false, ageWeek: 12 },
+      { id: 14, name: "Wait", practiced: false, ageWeek: 12 },
+      
+      // Week 20-26 Commands
+      { id: 15, name: "Heel", practiced: false, ageWeek: 20 },
+      { id: 16, name: "Place/Go to Bed", practiced: false, ageWeek: 20 },
+      { id: 17, name: "Quiet", practiced: false, ageWeek: 20 },
+      { id: 18, name: "Off", practiced: false, ageWeek: 20 },
+      { id: 19, name: "Settle", practiced: false, ageWeek: 20 },
+      
+      // Week 26-52 Advanced Commands
+      { id: 20, name: "Roll Over", practiced: false, ageWeek: 26 },
+      { id: 21, name: "Shake/Paw", practiced: false, ageWeek: 26 },
+      { id: 22, name: "Spin", practiced: false, ageWeek: 26 },
+      { id: 23, name: "Fetch", practiced: false, ageWeek: 26 },
+      { id: 24, name: "Distance Commands", practiced: false, ageWeek: 26 },
+      { id: 25, name: "Advanced Stay", practiced: false, ageWeek: 26 },
+    ];
+  });
+  // Initialize milestones from localStorage or use defaults
+  const [milestones, setMilestones] = useState<Milestone[]>(() => {
+    const savedMilestones = localStorage.getItem("puppyMilestones");
+    if (savedMilestones) {
+      return JSON.parse(savedMilestones);
+    }
+    return [
+      { id: 1, title: "First Vet Visit", completed: false, photo: null },
+      { id: 2, title: "First Walk", completed: false, photo: null },
+      { id: 3, title: "House Trained", completed: false, photo: null },
+      { id: 4, title: "Learned to Sit", completed: false, photo: null },
+      { id: 5, title: "First Successful Stay", completed: false, photo: null },
+      { id: 6, title: "Mastered Roll Over", completed: false, photo: null },
+    ];
+  });
+  
   const [customCommand, setCustomCommand] = useState("");
-  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  
+  // Initialize appointments from localStorage or use defaults
+  const [appointments, setAppointments] = useState<Appointment[]>(() => {
+    const savedAppointments = localStorage.getItem("puppyAppointments");
+    if (savedAppointments) {
+      return JSON.parse(savedAppointments);
+    }
+    return [];
+  });
   
   // Potty training states
   const [showPottyModal, setShowPottyModal] = useState(false);
-  const [pottyType, setPottyType] = useState<'pee' | 'poop'>('pee');
+  const [pottyType, setPottyType] = useState<'pee' | 'poop' | 'both'>('pee');
   const [pottyLocation, setPottyLocation] = useState<'inside' | 'outside'>('outside');
   const [pottyTime, setPottyTime] = useState('');
+  const [pottyNotes, setPottyNotes] = useState('');
+
+  // Meal log states
+  const [showMealModal, setShowMealModal] = useState(false);
+  const [mealType, setMealType] = useState<'breakfast' | 'lunch' | 'dinner' | 'snack'>('breakfast');
+  const [mealTime, setMealTime] = useState('');
+  const [mealAmount, setMealAmount] = useState('');
+  const [mealFood, setMealFood] = useState('');
+  const [mealNotes, setMealNotes] = useState('');
+
+  // Nap log states
+  const [showNapModal, setShowNapModal] = useState(false);
+  const [napStartTime, setNapStartTime] = useState('');
+  const [napEndTime, setNapEndTime] = useState('');
+  const [napLocation, setNapLocation] = useState('');
+  const [napNotes, setNapNotes] = useState('');
 
   // Practice log states
   const [showPracticeModal, setShowPracticeModal] = useState(false);
@@ -181,6 +245,11 @@ export default function App() {
   const [appointmentRecurringType, setAppointmentRecurringType] = useState<'vaccination' | 'deworming' | 'flea-tick' | 'checkup' | 'grooming' | 'custom'>('vaccination');
   const [appointmentDocuments, setAppointmentDocuments] = useState<string[]>([]);
 
+  // Edit log states
+  const [editingLogId, setEditingLogId] = useState<number | null>(null);
+  const [editingLogType, setEditingLogType] = useState<'potty' | 'practice' | 'nap' | null>(null);
+  const [editingCommandId, setEditingCommandId] = useState<number | null>(null);
+
   // Expanded commands state
   const [expandedCommands, setExpandedCommands] = useState<Set<number>>(new Set());
 
@@ -194,6 +263,39 @@ export default function App() {
     setExpandedCommands(newExpanded);
   };
 
+  // Potty Training Schedule
+  const pottySchedule = [
+    { time: "7:00 AM", activity: "Wake Up", action: 'Immediate trip outside. (Use your cue: "Go Potty!")', mandatory: true },
+    { time: "7:15 AM", activity: "Breakfast & Water", action: "Feed him. Give a small window for water.", mandatory: false },
+    { time: "7:30 AM", activity: "After Eating", action: "Immediate trip outside.", mandatory: true },
+    { time: "7:30 - 8:30 AM", activity: "Supervised Play", action: "30-60 min of playtime (inside or out, weather permitting).", mandatory: false },
+    { time: "8:30 AM", activity: "After Play", action: "Trip outside before nap.", mandatory: true },
+    { time: "8:30 - 10:30 AM", activity: "Nap Time", action: "Crate him for a nap. (2 hours is ideal.)", mandatory: false },
+    { time: "10:30 AM", activity: "Wake Up", action: "Immediate trip outside.", mandatory: true },
+    { time: "10:30 - 11:00 AM", activity: "Supervised Activity", action: "Quick training or mellow play/chew time.", mandatory: false },
+    { time: "11:00 AM", activity: "Time Check", action: "Trip outside (even if he went at 10:30 AM).", mandatory: true },
+    { time: "11:00 AM", activity: "Lunch & Water", action: "Feed him.", mandatory: false },
+    { time: "11:15 AM", activity: "After Eating", action: "Immediate trip outside.", mandatory: true },
+    { time: "11:30 AM - 1:30 PM", activity: "Nap Time", action: "Crate him for a nap.", mandatory: false },
+    { time: "1:30 PM", activity: "Wake Up", action: "Immediate trip outside.", mandatory: true },
+    { time: "1:30 - 2:00 PM", activity: "Supervised Activity", action: "Play or train.", mandatory: false },
+    { time: "2:00 PM", activity: "Time Check", action: "Trip outside.", mandatory: true },
+    { time: "2:00 - 4:00 PM", activity: "Nap Time", action: "Crate him for a nap.", mandatory: false },
+    { time: "4:00 PM", activity: "Wake Up", action: "Immediate trip outside.", mandatory: true },
+    { time: "4:00 - 5:00 PM", activity: "Supervised Play", action: "Time for high-energy play.", mandatory: false },
+    { time: "5:00 PM", activity: "Time Check", action: "Trip outside.", mandatory: true },
+    { time: "5:00 PM", activity: "Dinner & Water", action: "Feed him. Limit water after this time.", mandatory: false },
+    { time: "5:15 PM", activity: "After Eating", action: "Immediate trip outside.", mandatory: true },
+    { time: "5:30 - 7:30 PM", activity: "Quiet Time/Nap", action: "Mellow play, chewing, or a nap.", mandatory: false },
+    { time: "7:30 PM", activity: "Wake Up/Time Check", action: "Trip outside.", mandatory: true },
+    { time: "7:30 - 9:00 PM", activity: "Family Time/Mellow Play", action: "Snuggle, chew, or short training session.", mandatory: false },
+    { time: "9:00 PM", activity: "Time Check", action: "Trip outside.", mandatory: true },
+    { time: "10:45 PM", activity: "Last Call", action: "Final trip outside. Go potty, then immediately into the crate.", mandatory: true },
+    { time: "11:00 PM", activity: "Bedtime", action: "Puppy is in the crate.", mandatory: false },
+    { time: "2:00 AM", activity: "Mid-Night Break", action: "Alarm! Take him out, minimal interaction, back into the crate.", mandatory: true },
+    { time: "5:00 AM", activity: "Early Morning Break", action: "Trip outside. If he's awake, you start the 7:00 AM routine early.", mandatory: true }
+  ];
+
   // Expanded milestones state
   const [expandedMilestones, setExpandedMilestones] = useState<Set<number>>(new Set());
 
@@ -205,6 +307,24 @@ export default function App() {
       newExpanded.add(milestoneId);
     }
     setExpandedMilestones(newExpanded);
+  };
+
+  // Navigate to specific week in Commands tab
+  const navigateToWeek = (week: number) => {
+    setActiveTab('commands');
+    // Map weeks to their section IDs
+    let targetWeek = week;
+    if (week === 10) targetWeek = 8;  // Week 10 is in the 8-10 section
+    if (week === 16) targetWeek = 12; // Week 16 is in the 12-16 section
+    if (week === 52) targetWeek = 26; // Week 52 is in the 26-52 section
+    
+    // Wait for tab to render, then scroll to the week section
+    setTimeout(() => {
+      const element = document.getElementById(`week-${targetWeek}`);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 100);
   };
 
   // Initialize database hook
@@ -272,23 +392,6 @@ export default function App() {
       }
     };
     migrateData();
-  }, []);
-
-  // Load data from localStorage (only for commands, milestones, appointments - will migrate these later)
-  useEffect(() => {
-    const savedCommands = localStorage.getItem("puppyCommands");
-    const savedMilestones = localStorage.getItem("puppyMilestones");
-    const savedAppointments = localStorage.getItem("puppyAppointments");
-    
-    if (savedCommands) {
-      setCommands(JSON.parse(savedCommands));
-    }
-    if (savedMilestones) {
-      setMilestones(JSON.parse(savedMilestones));
-    }
-    if (savedAppointments) {
-      setAppointments(JSON.parse(savedAppointments));
-    }
   }, []);
 
   // Save commands to localStorage
@@ -361,7 +464,8 @@ export default function App() {
       time: pottyTime || now.toLocaleTimeString(),
       location: pottyLocation,
       loggedBy: currentUser,
-      date: now.toLocaleDateString()
+      date: now.toLocaleDateString(),
+      notes: pottyNotes || undefined
     };
     
     setCommands(commands.map(cmd => 
@@ -375,6 +479,59 @@ export default function App() {
     setPottyType('pee');
     setPottyLocation('outside');
     setPottyTime('');
+    setPottyNotes('');
+  };
+
+  const deletePottyLog = (logId: number) => {
+    if (window.confirm('Are you sure you want to delete this potty log?')) {
+      setCommands(commands.map(cmd => 
+        cmd.id === 1 // Potty Training command ID
+          ? { ...cmd, pottyLogs: cmd.pottyLogs?.filter(log => log.id !== logId) || [] }
+          : cmd
+      ));
+    }
+  };
+
+  const startEditPottyLog = (commandId: number, logId: number) => {
+    const command = commands.find(cmd => cmd.id === commandId);
+    const log = command?.pottyLogs?.find(l => l.id === logId);
+    if (log) {
+      setPottyType(log.type);
+      setPottyLocation(log.location);
+      setPottyTime(log.time);
+      setPottyNotes(log.notes || '');
+      setEditingLogId(logId);
+      setEditingLogType('potty');
+      setEditingCommandId(commandId);
+      setShowPottyModal(true);
+    }
+  };
+
+  const updatePottyLog = () => {
+    if (!currentUser || editingLogId === null || editingCommandId === null) return;
+    
+    setCommands(commands.map(cmd => 
+      cmd.id === editingCommandId
+        ? {
+            ...cmd,
+            pottyLogs: cmd.pottyLogs?.map(log =>
+              log.id === editingLogId
+                ? { ...log, type: pottyType, location: pottyLocation, time: pottyTime, notes: pottyNotes || undefined }
+                : log
+            )
+          }
+        : cmd
+    ));
+    
+    // Reset form
+    setShowPottyModal(false);
+    setPottyType('pee');
+    setPottyLocation('outside');
+    setPottyTime('');
+    setPottyNotes('');
+    setEditingLogId(null);
+    setEditingLogType(null);
+    setEditingCommandId(null);
   };
 
   const downloadPottyLog = () => {
@@ -400,6 +557,183 @@ export default function App() {
     a.click();
     document.body.removeChild(a);
     window.URL.revokeObjectURL(url);
+  };
+
+  const logMeal = () => {
+    if (!currentUser) return;
+    
+    const now = new Date();
+    const newLog: MealLog = {
+      id: Date.now(),
+      mealType: mealType,
+      time: mealTime || now.toLocaleTimeString(),
+      amount: mealAmount || undefined,
+      food: mealFood || undefined,
+      loggedBy: currentUser,
+      date: now.toLocaleDateString(),
+      notes: mealNotes || undefined
+    };
+    
+    setCommands(commands.map(cmd => 
+      cmd.id === 1 // Potty Training command ID
+        ? { ...cmd, mealLogs: [...(cmd.mealLogs || []), newLog] }
+        : cmd
+    ));
+    
+    // Reset form
+    setShowMealModal(false);
+    setMealType('breakfast');
+    setMealTime('');
+    setMealAmount('');
+    setMealFood('');
+    setMealNotes('');
+  };
+
+  const deleteMealLog = (logId: number) => {
+    if (window.confirm('Are you sure you want to delete this meal log?')) {
+      setCommands(commands.map(cmd => 
+        cmd.id === 1 // Potty Training command ID
+          ? { ...cmd, mealLogs: cmd.mealLogs?.filter(log => log.id !== logId) || [] }
+          : cmd
+      ));
+    }
+  };
+
+  const startEditMealLog = (commandId: number, logId: number) => {
+    const command = commands.find(cmd => cmd.id === commandId);
+    const log = command?.mealLogs?.find(l => l.id === logId);
+    if (log) {
+      setMealType(log.mealType);
+      setMealTime(log.time);
+      setMealAmount(log.amount || '');
+      setMealFood(log.food || '');
+      setMealNotes(log.notes || '');
+      setEditingLogId(logId);
+      setEditingLogType('potty'); // Reusing the editing state
+      setEditingCommandId(commandId);
+      setShowMealModal(true);
+    }
+  };
+
+  const updateMealLog = () => {
+    if (!currentUser || editingLogId === null || editingCommandId === null) return;
+    
+    setCommands(commands.map(cmd => 
+      cmd.id === editingCommandId
+        ? {
+            ...cmd,
+            mealLogs: cmd.mealLogs?.map(log =>
+              log.id === editingLogId
+                ? { 
+                    ...log, 
+                    mealType: mealType, 
+                    time: mealTime,
+                    amount: mealAmount || undefined,
+                    food: mealFood || undefined,
+                    notes: mealNotes || undefined 
+                  }
+                : log
+            )
+          }
+        : cmd
+    ));
+    
+    // Reset form
+    setShowMealModal(false);
+    setMealType('breakfast');
+    setMealTime('');
+    setMealAmount('');
+    setMealFood('');
+    setMealNotes('');
+    setEditingLogId(null);
+    setEditingLogType(null);
+    setEditingCommandId(null);
+  };
+
+  const logNap = () => {
+    if (!currentUser) return;
+    
+    const now = new Date();
+    const newLog: NapLog = {
+      id: Date.now(),
+      startTime: napStartTime || now.toLocaleTimeString(),
+      endTime: napEndTime || undefined,
+      location: napLocation,
+      loggedBy: currentUser,
+      date: now.toLocaleDateString(),
+      notes: napNotes || undefined
+    };
+    
+    setCommands(commands.map(cmd => 
+      cmd.id === 1 // Potty Training command ID
+        ? { ...cmd, napLogs: [...(cmd.napLogs || []), newLog] }
+        : cmd
+    ));
+    
+    // Reset form
+    setShowNapModal(false);
+    setNapStartTime('');
+    setNapEndTime('');
+    setNapLocation('');
+    setNapNotes('');
+  };
+
+  const deleteNapLog = (logId: number) => {
+    if (window.confirm('Are you sure you want to delete this nap log?')) {
+      setCommands(commands.map(cmd => 
+        cmd.id === 1 // Potty Training command ID
+          ? { ...cmd, napLogs: cmd.napLogs?.filter(log => log.id !== logId) || [] }
+          : cmd
+      ));
+    }
+  };
+
+  const startEditNapLog = (commandId: number, logId: number) => {
+    const command = commands.find(cmd => cmd.id === commandId);
+    const log = command?.napLogs?.find(l => l.id === logId);
+    if (log) {
+      setNapStartTime(log.startTime);
+      setNapEndTime(log.endTime || '');
+      setNapLocation(log.location);
+      setNapNotes(log.notes || '');
+      setEditingLogId(logId);
+      setEditingLogType('nap');
+      setEditingCommandId(commandId);
+      setShowNapModal(true);
+    }
+  };
+
+  const updateNapLog = () => {
+    if (!currentUser || editingLogId === null || editingCommandId === null) return;
+    
+    setCommands(commands.map(cmd => 
+      cmd.id === editingCommandId
+        ? {
+            ...cmd,
+            napLogs: cmd.napLogs?.map(log =>
+              log.id === editingLogId
+                ? { 
+                    ...log, 
+                    startTime: napStartTime, 
+                    endTime: napEndTime || undefined,
+                    location: napLocation,
+                    notes: napNotes || undefined 
+                  }
+                : log
+            )
+          }
+        : cmd
+    ));
+    
+    // Reset form
+    setShowNapModal(false);
+    setNapStartTime('');
+    setNapEndTime('');
+    setNapLocation('');
+    setNapNotes('');
+    setEditingLogId(null);
+    setEditingLogType(null);
+    setEditingCommandId(null);
   };
 
   const openPracticeModal = (commandId: number) => {
@@ -437,6 +771,69 @@ export default function App() {
     setPracticeDistractions('');
     setPracticeReliability(5);
     setPracticeNotes('');
+  };
+
+  const deletePracticeLog = (commandId: number, logId: number) => {
+    if (window.confirm('Are you sure you want to delete this practice log?')) {
+      setCommands(commands.map(cmd => 
+        cmd.id === commandId
+          ? { ...cmd, practiceLogs: cmd.practiceLogs?.filter(log => log.id !== logId) || [] }
+          : cmd
+      ));
+    }
+  };
+
+  const startEditPracticeLog = (commandId: number, logId: number) => {
+    const command = commands.find(cmd => cmd.id === commandId);
+    const log = command?.practiceLogs?.find(l => l.id === logId);
+    if (log) {
+      setPracticeAttempts(log.attempts?.toString() || '');
+      setPracticeSuccesses(log.successes?.toString() || '');
+      setPracticeDistractions(log.distractions || '');
+      setPracticeReliability(log.reliability || 5);
+      setPracticeNotes(log.notes || '');
+      setEditingLogId(logId);
+      setEditingLogType('practice');
+      setEditingCommandId(commandId);
+      setSelectedCommandId(commandId);
+      setShowPracticeModal(true);
+    }
+  };
+
+  const updatePracticeLog = () => {
+    if (!currentUser || editingLogId === null || editingCommandId === null) return;
+    
+    setCommands(commands.map(cmd => 
+      cmd.id === editingCommandId
+        ? {
+            ...cmd,
+            practiceLogs: cmd.practiceLogs?.map(log =>
+              log.id === editingLogId
+                ? {
+                    ...log,
+                    attempts: practiceAttempts ? parseInt(practiceAttempts) : undefined,
+                    successes: practiceSuccesses ? parseInt(practiceSuccesses) : undefined,
+                    distractions: practiceDistractions || undefined,
+                    reliability: practiceReliability,
+                    notes: practiceNotes || undefined
+                  }
+                : log
+            )
+          }
+        : cmd
+    ));
+    
+    // Reset form
+    setShowPracticeModal(false);
+    setSelectedCommandId(null);
+    setPracticeAttempts('');
+    setPracticeSuccesses('');
+    setPracticeDistractions('');
+    setPracticeReliability(5);
+    setPracticeNotes('');
+    setEditingLogId(null);
+    setEditingLogType(null);
+    setEditingCommandId(null);
   };
 
   const downloadCommandLog = (commandId: number) => {
@@ -768,7 +1165,28 @@ export default function App() {
     <div className="min-h-screen bg-gray-50 flex">
       {/* Left Sidebar */}
       <div className="w-64 bg-white shadow-sm border-r border-gray-200 p-6">
-        <h1 className="text-2xl font-bold text-gray-800 mb-8">Puppy Tracker</h1>
+        {/* Profile Picture */}
+        <div className="mb-6 flex justify-center">
+          <div className="relative">
+            <img 
+              src="/images/puppy-profile.jpg" 
+              alt="Puppy Profile"
+              className="w-32 h-32 rounded-full object-cover border-4 border-blue-200 shadow-lg"
+              onLoad={() => console.log('✅ Puppy image loaded successfully!')}
+              onError={(e) => {
+                console.error('❌ Failed to load puppy image from /images/puppy-profile.jpg');
+                // Fallback to emoji if image fails to load
+                const target = e.currentTarget;
+                target.style.display = 'none';
+                const fallback = document.createElement('div');
+                fallback.className = 'w-32 h-32 rounded-full bg-gradient-to-br from-blue-100 to-purple-100 border-4 border-blue-200 shadow-lg flex items-center justify-center text-5xl';
+                fallback.textContent = '🐶';
+                target.parentElement?.appendChild(fallback);
+              }}
+            />
+          </div>
+        </div>
+        
         <nav className="space-y-2">
           <button
             onClick={() => setActiveTab("dashboard")}
@@ -840,71 +1258,92 @@ export default function App() {
             
             {/* Growth Chart */}
             <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 mb-8">
-              <h3 className="text-2xl font-bold text-gray-800 mb-6">📈 Puppy Growth Timeline</h3>
+              <h3 className="text-2xl font-bold text-gray-800 mb-6">📈 Growth Timeline</h3>
 
               <div className="space-y-4">
-                <div className="p-4 bg-purple-50 border-2 border-purple-200 rounded-lg">
+                <button 
+                  onClick={() => navigateToWeek(8)}
+                  className="w-full p-4 bg-purple-50 border-2 border-purple-200 rounded-lg hover:bg-purple-100 hover:border-purple-300 transition-all cursor-pointer text-left"
+                >
                   <div className="flex justify-between items-center">
                     <span className="font-bold text-lg">Week 8 - Adoption Day! 🏠</span>
                     <span className="text-sm bg-purple-200 px-3 py-1 rounded-full">Week 8</span>
                   </div>
-                  <p className="text-gray-600 mt-2">Puppy comes home</p>
+                  <p className="text-gray-600 mt-2">Coming home</p>
                   <p className="text-sm text-gray-500 mt-1">November 7th, 2025</p>
-                </div>
+                </button>
 
-                <div className="p-4 bg-blue-50 border-2 border-blue-200 rounded-lg">
+                <button 
+                  onClick={() => navigateToWeek(10)}
+                  className="w-full p-4 bg-blue-50 border-2 border-blue-200 rounded-lg hover:bg-blue-100 hover:border-blue-300 transition-all cursor-pointer text-left"
+                >
                   <div className="flex justify-between items-center">
                     <span className="font-bold text-lg">Week 10 - First Vaccinations 💉</span>
                     <span className="text-sm bg-blue-200 px-3 py-1 rounded-full">Week 10</span>
                   </div>
                   <p className="text-gray-600 mt-2">Begin vaccination schedule</p>
                   <p className="text-sm text-gray-500 mt-1">November 21st, 2025</p>
-                </div>
+                </button>
 
-                <div className="p-4 bg-green-50 border-2 border-green-200 rounded-lg">
+                <button 
+                  onClick={() => navigateToWeek(12)}
+                  className="w-full p-4 bg-green-50 border-2 border-green-200 rounded-lg hover:bg-green-100 hover:border-green-300 transition-all cursor-pointer text-left"
+                >
                   <div className="flex justify-between items-center">
                     <span className="font-bold text-lg">Week 12 - Socialization Period 🐕</span>
                     <span className="text-sm bg-green-200 px-3 py-1 rounded-full">Week 12</span>
                   </div>
                   <p className="text-gray-600 mt-2">Critical socialization window</p>
                   <p className="text-sm text-gray-500 mt-1">December 5th, 2025</p>
-                </div>
+                </button>
 
-                <div className="p-4 bg-yellow-50 border-2 border-yellow-200 rounded-lg">
+                <button 
+                  onClick={() => navigateToWeek(16)}
+                  className="w-full p-4 bg-yellow-50 border-2 border-yellow-200 rounded-lg hover:bg-yellow-100 hover:border-yellow-300 transition-all cursor-pointer text-left"
+                >
                   <div className="flex justify-between items-center">
                     <span className="font-bold text-lg">Week 16 - Basic Training 📚</span>
                     <span className="text-sm bg-yellow-200 px-3 py-1 rounded-full">Week 16</span>
                   </div>
                   <p className="text-gray-600 mt-2">Start formal training</p>
                   <p className="text-sm text-gray-500 mt-1">January 2nd, 2026</p>
-                </div>
+                </button>
 
-                <div className="p-4 bg-orange-50 border-2 border-orange-200 rounded-lg">
+                <button 
+                  onClick={() => navigateToWeek(20)}
+                  className="w-full p-4 bg-orange-50 border-2 border-orange-200 rounded-lg hover:bg-orange-100 hover:border-orange-300 transition-all cursor-pointer text-left"
+                >
                   <div className="flex justify-between items-center">
                     <span className="font-bold text-lg">Week 20 - Teething Phase 🦷</span>
                     <span className="text-sm bg-orange-200 px-3 py-1 rounded-full">Week 20</span>
                   </div>
                   <p className="text-gray-600 mt-2">Adult teeth coming in</p>
                   <p className="text-sm text-gray-500 mt-1">January 30th, 2026</p>
-                </div>
+                </button>
 
-                <div className="p-4 bg-pink-50 border-2 border-pink-200 rounded-lg">
+                <button 
+                  onClick={() => navigateToWeek(26)}
+                  className="w-full p-4 bg-pink-50 border-2 border-pink-200 rounded-lg hover:bg-pink-100 hover:border-pink-300 transition-all cursor-pointer text-left"
+                >
                   <div className="flex justify-between items-center">
                     <span className="font-bold text-lg">Week 26 - 6 Month Milestone 🎉</span>
                     <span className="text-sm bg-pink-200 px-3 py-1 rounded-full">Week 26</span>
                   </div>
                   <p className="text-gray-600 mt-2">Rapid growth phase</p>
                   <p className="text-sm text-gray-500 mt-1">March 13th, 2026</p>
-                </div>
+                </button>
 
-                <div className="p-4 bg-indigo-50 border-2 border-indigo-200 rounded-lg">
+                <button 
+                  onClick={() => navigateToWeek(52)}
+                  className="w-full p-4 bg-indigo-50 border-2 border-indigo-200 rounded-lg hover:bg-indigo-100 hover:border-indigo-300 transition-all cursor-pointer text-left"
+                >
                   <div className="flex justify-between items-center">
                     <span className="font-bold text-lg">Week 52 - One Year Old! 🎂</span>
                     <span className="text-sm bg-indigo-200 px-3 py-1 rounded-full">Week 52</span>
                   </div>
                   <p className="text-gray-600 mt-2">Approaching adulthood</p>
                   <p className="text-sm text-gray-500 mt-1">November 5th, 2026</p>
-                </div>
+                </button>
               </div>
             </div>
             
@@ -1030,7 +1469,7 @@ export default function App() {
             </div>
 
             {/* Week 8-10: Foundation Training */}
-            <div className="mb-8">
+            <div id="week-8" className="mb-8 scroll-mt-4">
               <div className="bg-purple-100 p-4 rounded-lg mb-4">
                 <h3 className="text-2xl font-bold text-purple-800">Week 8-10: Foundation Training 🐾</h3>
                 <p className="text-purple-700 mt-1">Building blocks for a well-behaved puppy</p>
@@ -1065,11 +1504,27 @@ export default function App() {
                           <span className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
                             {logCount} log{logCount !== 1 ? 's' : ''}
                           </span>
+                          {command.id === 1 && (
+                            <>
+                              <button
+                                onClick={() => setShowMealModal(true)}
+                                className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors text-sm font-medium"
+                              >
+                                🍽️ Log Meal
+                              </button>
+                              <button
+                                onClick={() => setShowNapModal(true)}
+                                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                              >
+                                😴 Log Nap
+                              </button>
+                            </>
+                          )}
                           <button
                             onClick={() => command.id === 1 ? setShowPottyModal(true) : openPracticeModal(command.id)}
                             className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium"
                           >
-                            + Log Practice
+                            {command.id === 1 ? '🚽 Log Potty' : '+ Log Practice'}
                           </button>
                         </div>
                       </div>
@@ -1077,8 +1532,48 @@ export default function App() {
                       {/* Expanded Content - Logs */}
                       {isExpanded && (
                         <div className="border-t border-gray-200 bg-gray-50 p-4">
+                          {/* Potty Training Schedule */}
+                          {command.id === 1 && (
+                            <div className="mb-6">
+                              <h4 className="text-sm font-semibold text-gray-700 mb-3">📅 Daily Potty Schedule</h4>
+                              <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-4 rounded-lg border border-purple-200">
+                                <div className="space-y-2 max-h-96 overflow-y-auto">
+                                  {pottySchedule.map((item, index) => (
+                                    <div 
+                                      key={index} 
+                                      className={`p-3 rounded-lg border-l-4 ${
+                                        item.mandatory 
+                                          ? 'bg-white border-l-red-400 shadow-sm' 
+                                          : 'bg-purple-50/50 border-l-purple-300'
+                                      }`}
+                                    >
+                                      <div className="flex items-start gap-3">
+                                        <div className="flex-shrink-0 w-28">
+                                          <span className="text-xs font-bold text-purple-700">{item.time}</span>
+                                        </div>
+                                        <div className="flex-1">
+                                          <div className="flex items-center gap-2 mb-1">
+                                            <span className="text-sm font-semibold text-gray-800">{item.activity}</span>
+                                            {item.mandatory && (
+                                              <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-medium">
+                                                POTTY BREAK
+                                              </span>
+                                            )}
+                                          </div>
+                                          <p className="text-xs text-gray-600">{item.action}</p>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+                          )}
+
                           <div className="flex items-center justify-between mb-3">
-                            <h4 className="text-sm font-semibold text-gray-700">Practice Logs</h4>
+                            <h4 className="text-sm font-semibold text-gray-700">
+                              {command.id === 1 ? 'Potty Logs' : command.id === 2 ? 'Crate Time Logs' : 'Practice Logs'}
+                            </h4>
                             {logCount > 0 && (
                               <button
                                 onClick={() => command.id === 1 ? downloadPottyLog() : downloadCommandLog(command.id)}
@@ -1097,27 +1592,180 @@ export default function App() {
                                 <div key={log.id} className="bg-white p-3 rounded border border-purple-200">
                                   <div className="flex justify-between items-start mb-1">
                                     <span className="font-medium text-purple-800 capitalize text-sm">{log.type} - {log.location}</span>
-                                    <span className="text-xs text-gray-500">{log.date}</span>
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-xs text-gray-500">{log.date}</span>
+                                      <button
+                                        onClick={() => startEditPottyLog(command.id, log.id)}
+                                        className="text-blue-500 hover:text-blue-700 transition-colors"
+                                        title="Edit log"
+                                      >
+                                        <Edit size={16} />
+                                      </button>
+                                      <button
+                                        onClick={() => deletePottyLog(log.id)}
+                                        className="text-red-500 hover:text-red-700 transition-colors"
+                                        title="Delete log"
+                                      >
+                                        <Trash2 size={16} />
+                                      </button>
+                                    </div>
                                   </div>
-                                  <div className="flex justify-between text-xs text-gray-600">
+                                  <div className="flex justify-between text-xs text-gray-600 mb-1">
                                     <span>{log.time}</span>
                                     <span className="text-purple-600">by {log.loggedBy}</span>
                                   </div>
+                                  {log.notes && (
+                                    <p className="text-xs text-gray-600 italic mt-2 pt-2 border-t border-gray-200">
+                                      Note: {log.notes}
+                                    </p>
+                                  )}
                                 </div>
                               ))}
                             </div>
-                          ) : command.practiceLogs && command.practiceLogs.length > 0 ? (
+                          ) : null}
+
+                          {/* Meal Logs for Potty Training */}
+                          {command.id === 1 && (
+                            <>
+                              <div className="mt-6 mb-3">
+                                <h4 className="text-sm font-semibold text-gray-700">🍽️ Meal Logs</h4>
+                              </div>
+                              {command.mealLogs && command.mealLogs.length > 0 ? (
+                                <div className="space-y-2 max-h-96 overflow-y-auto mb-6">
+                                  {command.mealLogs.map((log) => (
+                                    <div key={log.id} className="bg-white p-3 rounded border border-orange-200">
+                                      <div className="flex justify-between items-start mb-1">
+                                        <span className="font-medium text-orange-800 capitalize text-sm">
+                                          {log.mealType === 'breakfast' ? '🌅' : log.mealType === 'lunch' ? '☀️' : log.mealType === 'dinner' ? '🌙' : '🍪'} {log.mealType}
+                                        </span>
+                                        <div className="flex items-center gap-2">
+                                          <span className="text-xs text-gray-500">{log.date}</span>
+                                          <button
+                                            onClick={() => startEditMealLog(command.id, log.id)}
+                                            className="text-blue-500 hover:text-blue-700 transition-colors"
+                                            title="Edit log"
+                                          >
+                                            <Edit size={16} />
+                                          </button>
+                                          <button
+                                            onClick={() => deleteMealLog(log.id)}
+                                            className="text-red-500 hover:text-red-700 transition-colors"
+                                            title="Delete log"
+                                          >
+                                            <Trash2 size={16} />
+                                          </button>
+                                        </div>
+                                      </div>
+                                      <div className="text-xs text-gray-600 mb-1">
+                                        <span className="font-medium">Time:</span> {log.time}
+                                      </div>
+                                      {log.amount && (
+                                        <div className="text-xs text-gray-600 mb-1">
+                                          <span className="font-medium">Amount:</span> {log.amount}
+                                        </div>
+                                      )}
+                                      {log.food && (
+                                        <div className="text-xs text-gray-600 mb-1">
+                                          <span className="font-medium">Food:</span> {log.food}
+                                        </div>
+                                      )}
+                                      <div className="text-xs text-gray-600">
+                                        <span className="text-orange-600">by {log.loggedBy}</span>
+                                      </div>
+                                      {log.notes && (
+                                        <p className="text-xs text-gray-600 italic mt-2 pt-2 border-t border-gray-200">
+                                          Note: {log.notes}
+                                        </p>
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : (
+                                <p className="text-gray-400 italic text-center py-4 text-sm mb-6">No meals logged yet</p>
+                              )}
+                            </>
+                          )}
+
+                          {/* Nap Logs for Potty Training */}
+                          {command.id === 1 && (
+                            <>
+                              <div className="mt-6 mb-3">
+                                <h4 className="text-sm font-semibold text-gray-700">😴 Nap Logs</h4>
+                              </div>
+                              {command.napLogs && command.napLogs.length > 0 ? (
+                                <div className="space-y-2 max-h-96 overflow-y-auto mb-6">
+                                  {command.napLogs.map((log) => (
+                                    <div key={log.id} className="bg-white p-3 rounded border border-blue-200">
+                                      <div className="flex justify-between items-start mb-1">
+                                        <span className="font-medium text-blue-800 text-sm">
+                                          😴 Nap Time
+                                        </span>
+                                        <div className="flex items-center gap-2">
+                                          <span className="text-xs text-gray-500">{log.date}</span>
+                                          <button
+                                            onClick={() => startEditNapLog(command.id, log.id)}
+                                            className="text-blue-500 hover:text-blue-700 transition-colors"
+                                            title="Edit log"
+                                          >
+                                            <Edit size={16} />
+                                          </button>
+                                          <button
+                                            onClick={() => deleteNapLog(log.id)}
+                                            className="text-red-500 hover:text-red-700 transition-colors"
+                                            title="Delete log"
+                                          >
+                                            <Trash2 size={16} />
+                                          </button>
+                                        </div>
+                                      </div>
+                                      <div className="text-xs text-gray-600 mb-1">
+                                        <span className="font-medium">Start:</span> {log.startTime}
+                                        {log.endTime && (
+                                          <span className="ml-3">
+                                            <span className="font-medium">End:</span> {log.endTime}
+                                          </span>
+                                        )}
+                                      </div>
+                                      <div className="text-xs text-gray-600 mb-1">
+                                        <span className="font-medium">Location:</span> {log.location}
+                                      </div>
+                                      <div className="text-xs text-gray-600">
+                                        <span className="text-blue-600">by {log.loggedBy}</span>
+                                      </div>
+                                      {log.notes && (
+                                        <p className="text-xs text-gray-600 italic mt-2 pt-2 border-t border-gray-200">
+                                          Note: {log.notes}
+                                        </p>
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : (
+                                <p className="text-gray-400 italic text-center py-4 text-sm mb-6">No naps logged yet</p>
+                              )}
+                            </>
+                          )}
+
+                          {command.practiceLogs && command.practiceLogs.length > 0 ? (
                             <div className="space-y-2 max-h-96 overflow-y-auto">
                               {command.practiceLogs.map((log) => (
                                 <div key={log.id} className="bg-white p-3 rounded border border-purple-200">
                                   <div className="flex justify-between items-start mb-2">
-                                    <span className="text-xs text-gray-500">{log.date} at {log.time}</span>
-                                    <span className="text-xs text-purple-600">by {log.loggedBy}</span>
+                                    <div>
+                                      <span className="text-xs text-gray-500">{log.date} at {log.time}</span>
+                                      <span className="text-xs text-purple-600 ml-3">by {log.loggedBy}</span>
+                                    </div>
+                                    <button
+                                      onClick={() => deletePracticeLog(command.id, log.id)}
+                                      className="text-red-500 hover:text-red-700 transition-colors"
+                                      title="Delete log"
+                                    >
+                                      <Trash2 size={16} />
+                                    </button>
                                   </div>
-                                  {(log.attempts || log.successes) && (
+                                  {log.attempts && (
                                     <div className="text-sm text-gray-700 mb-1">
-                                      <span className="font-medium">Attempts: {log.attempts || 0}</span>
-                                      <span className="ml-3 font-medium text-green-600">Successes: {log.successes || 0}</span>
+                                      <span className="font-medium">Attempts: {log.attempts}</span>
                                     </div>
                                   )}
                                   {log.distractions && (
@@ -1144,7 +1792,7 @@ export default function App() {
             </div>
 
             {/* Week 12-16: Basic Commands */}
-            <div className="mb-8">
+            <div id="week-12" className="mb-8 scroll-mt-4">
               <div className="bg-blue-100 p-4 rounded-lg mb-4">
                 <h3 className="text-2xl font-bold text-blue-800">Week 12-16: Basic Commands 📚</h3>
                 <p className="text-blue-700 mt-1">Essential obedience training</p>
@@ -1207,8 +1855,17 @@ export default function App() {
                               {command.practiceLogs.map((log) => (
                                 <div key={log.id} className="bg-white p-3 rounded border border-blue-200">
                                   <div className="flex justify-between items-start mb-2">
-                                    <span className="text-xs text-gray-500">{log.date} at {log.time}</span>
-                                    <span className="text-xs text-blue-600">by {log.loggedBy}</span>
+                                    <div>
+                                      <span className="text-xs text-gray-500">{log.date} at {log.time}</span>
+                                      <span className="text-xs text-blue-600 ml-3">by {log.loggedBy}</span>
+                                    </div>
+                                    <button
+                                      onClick={() => deletePracticeLog(command.id, log.id)}
+                                      className="text-red-500 hover:text-red-700 transition-colors"
+                                      title="Delete log"
+                                    >
+                                      <Trash2 size={16} />
+                                    </button>
                                   </div>
                                   {(log.attempts || log.successes) && (
                                     <div className="text-sm text-gray-700 mb-1">
@@ -1240,7 +1897,7 @@ export default function App() {
             </div>
 
             {/* Week 20-26: Intermediate Training */}
-            <div className="mb-8">
+            <div id="week-20" className="mb-8 scroll-mt-4">
               <div className="bg-orange-100 p-4 rounded-lg mb-4">
                 <h3 className="text-2xl font-bold text-orange-800">Week 20-26: Intermediate Training 🎯</h3>
                 <p className="text-orange-700 mt-1">Building impulse control and manners</p>
@@ -1303,8 +1960,17 @@ export default function App() {
                               {command.practiceLogs.map((log) => (
                                 <div key={log.id} className="bg-white p-3 rounded border border-orange-200">
                                   <div className="flex justify-between items-start mb-2">
-                                    <span className="text-xs text-gray-500">{log.date} at {log.time}</span>
-                                    <span className="text-xs text-orange-600">by {log.loggedBy}</span>
+                                    <div>
+                                      <span className="text-xs text-gray-500">{log.date} at {log.time}</span>
+                                      <span className="text-xs text-orange-600 ml-3">by {log.loggedBy}</span>
+                                    </div>
+                                    <button
+                                      onClick={() => deletePracticeLog(command.id, log.id)}
+                                      className="text-red-500 hover:text-red-700 transition-colors"
+                                      title="Delete log"
+                                    >
+                                      <Trash2 size={16} />
+                                    </button>
                                   </div>
                                   {(log.attempts || log.successes) && (
                                     <div className="text-sm text-gray-700 mb-1">
@@ -1336,7 +2002,7 @@ export default function App() {
             </div>
 
             {/* Week 26-52: Advanced Commands */}
-            <div className="mb-8">
+            <div id="week-26" className="mb-8 scroll-mt-4">
               <div className="bg-indigo-100 p-4 rounded-lg mb-4">
                 <h3 className="text-2xl font-bold text-indigo-800">Week 26-52: Advanced Training 🏆</h3>
                 <p className="text-indigo-700 mt-1">Fun tricks and advanced obedience</p>
@@ -1399,8 +2065,17 @@ export default function App() {
                               {command.practiceLogs.map((log) => (
                                 <div key={log.id} className="bg-white p-3 rounded border border-indigo-200">
                                   <div className="flex justify-between items-start mb-2">
-                                    <span className="text-xs text-gray-500">{log.date} at {log.time}</span>
-                                    <span className="text-xs text-indigo-600">by {log.loggedBy}</span>
+                                    <div>
+                                      <span className="text-xs text-gray-500">{log.date} at {log.time}</span>
+                                      <span className="text-xs text-indigo-600 ml-3">by {log.loggedBy}</span>
+                                    </div>
+                                    <button
+                                      onClick={() => deletePracticeLog(command.id, log.id)}
+                                      className="text-red-500 hover:text-red-700 transition-colors"
+                                      title="Delete log"
+                                    >
+                                      <Trash2 size={16} />
+                                    </button>
                                   </div>
                                   {(log.attempts || log.successes) && (
                                     <div className="text-sm text-gray-700 mb-1">
@@ -1531,11 +2206,13 @@ export default function App() {
                                 <Camera size={14} />
                                 Milestone Photo:
                               </p>
-                              <img
-                                src={milestone.photo}
-                                alt={milestone.title}
-                                className="w-full h-64 object-cover rounded-lg"
-                              />
+                              <div className="flex justify-center">
+                                <img
+                                  src={milestone.photo}
+                                  alt={milestone.title}
+                                  className="w-64 h-64 object-cover rounded-lg"
+                                />
+                              </div>
                             </div>
                           ) : (
                             <div className="bg-white p-6 rounded border border-dashed border-gray-300 text-center">
@@ -1900,16 +2577,18 @@ export default function App() {
       {showPottyModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-            <h3 className="text-xl font-semibold mb-4">Log Potty Break 🚽</h3>
+            <h3 className="text-xl font-semibold mb-4">
+              {editingLogId ? 'Edit Potty Break 🚽' : 'Log Potty Break 🚽'}
+            </h3>
             
             <div className="space-y-4">
               {/* Type Selection */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
-                <div className="flex gap-3">
+                <div className="grid grid-cols-3 gap-3">
                   <button
                     onClick={() => setPottyType('pee')}
-                    className={`flex-1 px-4 py-2 rounded-lg border-2 transition-colors ${
+                    className={`px-4 py-2 rounded-lg border-2 transition-colors ${
                       pottyType === 'pee'
                         ? 'bg-yellow-100 border-yellow-500 text-yellow-800'
                         : 'bg-white border-gray-300 text-gray-700 hover:border-yellow-300'
@@ -1919,13 +2598,23 @@ export default function App() {
                   </button>
                   <button
                     onClick={() => setPottyType('poop')}
-                    className={`flex-1 px-4 py-2 rounded-lg border-2 transition-colors ${
+                    className={`px-4 py-2 rounded-lg border-2 transition-colors ${
                       pottyType === 'poop'
                         ? 'bg-brown-100 border-amber-700 text-amber-900'
                         : 'bg-white border-gray-300 text-gray-700 hover:border-amber-300'
                     }`}
                   >
                     💩 Poop
+                  </button>
+                  <button
+                    onClick={() => setPottyType('both')}
+                    className={`px-4 py-2 rounded-lg border-2 transition-colors ${
+                      pottyType === 'both'
+                        ? 'bg-purple-100 border-purple-500 text-purple-800'
+                        : 'bg-white border-gray-300 text-gray-700 hover:border-purple-300'
+                    }`}
+                  >
+                    💧💩 Both
                   </button>
                 </div>
               </div>
@@ -1968,6 +2657,18 @@ export default function App() {
                 />
                 <p className="text-xs text-gray-500 mt-1">Leave empty to use current time</p>
               </div>
+
+              {/* Notes Input */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Notes (optional)</label>
+                <textarea
+                  value={pottyNotes}
+                  onChange={(e) => setPottyNotes(e.target.value)}
+                  placeholder="Add any notes about this potty break..."
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                  rows={3}
+                />
+              </div>
             </div>
 
             {/* Action Buttons */}
@@ -1978,16 +2679,241 @@ export default function App() {
                   setPottyType('pee');
                   setPottyLocation('outside');
                   setPottyTime('');
+                  setPottyNotes('');
+                  setEditingLogId(null);
+                  setEditingLogType(null);
+                  setEditingCommandId(null);
                 }}
                 className="flex-1 px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors"
               >
                 Cancel
               </button>
               <button
-                onClick={logPottyBreak}
+                onClick={editingLogId ? updatePottyLog : logPottyBreak}
                 className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
               >
-                Save Log
+                {editingLogId ? 'Update Log' : 'Save Log'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Meal Modal */}
+      {showMealModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
+            <h3 className="text-xl font-bold mb-4 text-gray-800">
+              {editingLogId ? '✏️ Edit Meal' : '🍽️ Log Meal'}
+            </h3>
+
+            <div className="space-y-4">
+              {/* Meal Type Selection */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Meal Type</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    onClick={() => setMealType('breakfast')}
+                    className={`px-4 py-3 rounded-lg border-2 font-medium transition-colors ${
+                      mealType === 'breakfast'
+                        ? 'bg-yellow-100 border-yellow-500 text-yellow-800'
+                        : 'bg-white border-gray-300 text-gray-700 hover:border-yellow-400'
+                    }`}
+                  >
+                    🌅 Breakfast
+                  </button>
+                  <button
+                    onClick={() => setMealType('lunch')}
+                    className={`px-4 py-3 rounded-lg border-2 font-medium transition-colors ${
+                      mealType === 'lunch'
+                        ? 'bg-orange-100 border-orange-500 text-orange-800'
+                        : 'bg-white border-gray-300 text-gray-700 hover:border-orange-400'
+                    }`}
+                  >
+                    ☀️ Lunch
+                  </button>
+                  <button
+                    onClick={() => setMealType('dinner')}
+                    className={`px-4 py-3 rounded-lg border-2 font-medium transition-colors ${
+                      mealType === 'dinner'
+                        ? 'bg-blue-100 border-blue-500 text-blue-800'
+                        : 'bg-white border-gray-300 text-gray-700 hover:border-blue-400'
+                    }`}
+                  >
+                    🌙 Dinner
+                  </button>
+                  <button
+                    onClick={() => setMealType('snack')}
+                    className={`px-4 py-3 rounded-lg border-2 font-medium transition-colors ${
+                      mealType === 'snack'
+                        ? 'bg-green-100 border-green-500 text-green-800'
+                        : 'bg-white border-gray-300 text-gray-700 hover:border-green-400'
+                    }`}
+                  >
+                    🍪 Snack
+                  </button>
+                </div>
+              </div>
+
+              {/* Time Input */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Time *</label>
+                <input
+                  type="time"
+                  value={mealTime}
+                  onChange={(e) => setMealTime(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                />
+              </div>
+
+              {/* Amount Input */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Amount (optional)</label>
+                <input
+                  type="text"
+                  value={mealAmount}
+                  onChange={(e) => setMealAmount(e.target.value)}
+                  placeholder="e.g., 1 cup, 2 oz"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              {/* Food Input */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Food (optional)</label>
+                <input
+                  type="text"
+                  value={mealFood}
+                  onChange={(e) => setMealFood(e.target.value)}
+                  placeholder="e.g., puppy kibble, chicken & rice"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              {/* Notes Input */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Notes (optional)</label>
+                <textarea
+                  value={mealNotes}
+                  onChange={(e) => setMealNotes(e.target.value)}
+                  placeholder="Add any notes about this meal..."
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                  rows={3}
+                />
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={() => {
+                  setShowMealModal(false);
+                  setMealType('breakfast');
+                  setMealTime('');
+                  setMealAmount('');
+                  setMealFood('');
+                  setMealNotes('');
+                  setEditingLogId(null);
+                  setEditingLogType(null);
+                  setEditingCommandId(null);
+                }}
+                className="flex-1 px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={editingLogId ? updateMealLog : logMeal}
+                disabled={!mealTime}
+                className="flex-1 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+              >
+                {editingLogId ? 'Update Meal' : 'Save Meal'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Nap Modal */}
+      {showNapModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
+            <h3 className="text-xl font-bold mb-4 text-gray-800">
+              {editingLogId ? '✏️ Edit Nap' : '😴 Log Nap'}
+            </h3>
+
+            <div className="space-y-4">
+              {/* Start Time Input */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Start Time *</label>
+                <input
+                  type="time"
+                  value={napStartTime}
+                  onChange={(e) => setNapStartTime(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                />
+              </div>
+
+              {/* End Time Input */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">End Time (optional)</label>
+                <input
+                  type="time"
+                  value={napEndTime}
+                  onChange={(e) => setNapEndTime(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              {/* Location Input */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
+                <input
+                  type="text"
+                  value={napLocation}
+                  onChange={(e) => setNapLocation(e.target.value)}
+                  placeholder="e.g., crate, bed, couch, play pen"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              {/* Notes Input */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Notes (optional)</label>
+                <textarea
+                  value={napNotes}
+                  onChange={(e) => setNapNotes(e.target.value)}
+                  placeholder="Add any notes about this nap..."
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                  rows={3}
+                />
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={() => {
+                  setShowNapModal(false);
+                  setNapStartTime('');
+                  setNapEndTime('');
+                  setNapLocation('');
+                  setNapNotes('');
+                  setEditingLogId(null);
+                  setEditingLogType(null);
+                  setEditingCommandId(null);
+                }}
+                className="flex-1 px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={editingLogId ? updateNapLog : logNap}
+                disabled={!napStartTime}
+                className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+              >
+                {editingLogId ? 'Update Nap' : 'Save Nap'}
               </button>
             </div>
           </div>
@@ -1998,7 +2924,9 @@ export default function App() {
       {showPracticeModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto">
-            <h3 className="text-xl font-semibold mb-4">Add Practice Log 📝</h3>
+            <h3 className="text-xl font-semibold mb-4">
+              {editingLogId ? 'Edit Practice Log 📝' : 'Add Practice Log 📝'}
+            </h3>
             
             <div className="space-y-4">
               {/* Attempts */}
@@ -2010,19 +2938,6 @@ export default function App() {
                   value={practiceAttempts}
                   onChange={(e) => setPracticeAttempts(e.target.value)}
                   placeholder="Number of attempts"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-
-              {/* Successes */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Successes</label>
-                <input
-                  type="number"
-                  min="0"
-                  value={practiceSuccesses}
-                  onChange={(e) => setPracticeSuccesses(e.target.value)}
-                  placeholder="Number of successful attempts"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
@@ -2082,16 +2997,19 @@ export default function App() {
                   setPracticeDistractions('');
                   setPracticeReliability(5);
                   setPracticeNotes('');
+                  setEditingLogId(null);
+                  setEditingLogType(null);
+                  setEditingCommandId(null);
                 }}
                 className="flex-1 px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors"
               >
                 Cancel
               </button>
               <button
-                onClick={addPracticeLog}
+                onClick={editingLogId ? updatePracticeLog : addPracticeLog}
                 className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
               >
-                Save Log
+                {editingLogId ? 'Update Log' : 'Save Log'}
               </button>
             </div>
           </div>

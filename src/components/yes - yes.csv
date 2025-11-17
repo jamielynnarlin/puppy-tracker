@@ -1,0 +1,30 @@
+Time,Activity,Location/Action,Mandatory Potty Break?
+7:00 AM,Wake Up,"Immediate trip outside. (Use your cue: ""Go Potty!"")",YES
+7:15 AM,Breakfast & Water,Feed him. Give a small window for water.,
+7:30 AM,After Eating,Immediate trip outside.,YES
+7:30 - 8:30 AM,Supervised Play,"30-60 min of playtime (inside or out, weather permitting).",
+8:30 AM,After Play,Trip outside before nap.,YES
+8:30 - 10:30 AM,Nap Time,Crate him for a nap. (2 hours is ideal.),
+10:30 AM,Wake Up,Immediate trip outside.,YES
+10:30 - 11:00 AM,Supervised Activity,Quick training or mellow play/chew time.,
+11:00 AM,Time Check,Trip outside (even if he went at 10:30 AM).,YES
+11:00 AM,Lunch & Water,Feed him.,
+11:15 AM,After Eating,Immediate trip outside.,YES
+11:30 AM - 1:30 PM,Nap Time,Crate him for a nap.,
+1:30 PM,Wake Up,Immediate trip outside.,YES
+1:30 - 2:00 PM,Supervised Activity,Play or train.,
+2:00 PM,Time Check,Trip outside.,YES
+2:00 - 4:00 PM,Nap Time,Crate him for a nap.,
+4:00 PM,Wake Up,Immediate trip outside.,YES
+4:00 - 5:00 PM,Supervised Play,Time for high-energy play.,
+5:00 PM,Time Check,Trip outside.,YES
+5:00 PM,Dinner & Water,Feed him. Limit water after this time.,
+5:15 PM,After Eating,Immediate trip outside.,YES
+5:30 - 7:30 PM,Quiet Time/Nap,"Mellow play, chewing, or a nap.",
+7:30 PM,Wake Up/Time Check,Trip outside.,YES
+7:30 - 9:00 PM,Family Time/Mellow Play,"Snuggle, chew, or short training session.",
+9:00 PM,Time Check,Trip outside.,YES
+10:45 PM,Last Call,"Final trip outside. Go potty, then immediately into the crate.",YES
+11:00 PM,Bedtime,Puppy is in the crate.,
+2:00 AM,Mid-Night Break,"Alarm! Take him out, minimal interaction, back into the crate.",YES
+5:00 AM,Early Morning Break,"Trip outside. If he's awake, you start the 7:00 AM routine early.",YES

@@ -47,17 +47,16 @@
     
     <!-- Preload critical resources -->
     <link rel="preload" href="/icons/icon-192x192.png" as="image" />
-    <script type="module" crossorigin src="/assets/main-B4HtedZe.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/main-D4lHjUDZ.css">
+    <script type="module" crossorigin src="/assets/index-Cz8dGc7r.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-Dm1iTz8k.css">
   </head>
   <body>
-    <div id="root"></div>
-
+    <div id="root"></div>
     
     <!-- Service Worker Registration -->
     <script>
       // Register service worker for PWA functionality
-      if ('serviceWorker' in navigator) {
+      if (false && 'serviceWorker' in navigator) {
         window.addEventListener('load', async () => {
           try {
             const registration = await navigator.serviceWorker.register('/sw.js');
@@ -101,3 +100,4 @@
     </script>
   </body>
 </html>
+
