@@ -1162,16 +1162,16 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen bg-gray-50 flex flex-col md:flex-row">
       {/* Left Sidebar */}
-      <div className="w-64 bg-white shadow-sm border-r border-gray-200 p-6">
+      <div className="w-full md:w-64 bg-white shadow-sm md:border-r border-b md:border-b-0 border-gray-200 p-4 md:p-6">
         {/* Profile Picture */}
-        <div className="mb-6 flex justify-center">
+        <div className="mb-4 md:mb-6 flex justify-center">
           <div className="relative">
             <img 
               src="/images/puppy-profile.jpg" 
               alt="Puppy Profile"
-              className="w-32 h-32 rounded-full object-cover border-4 border-blue-200 shadow-lg"
+              className="w-20 h-20 md:w-32 md:h-32 rounded-full object-cover border-2 md:border-4 border-blue-200 shadow-lg"
               onLoad={() => console.log('✅ Puppy image loaded successfully!')}
               onError={(e) => {
                 console.error('❌ Failed to load puppy image from /images/puppy-profile.jpg');
@@ -1179,7 +1179,7 @@ export default function App() {
                 const target = e.currentTarget;
                 target.style.display = 'none';
                 const fallback = document.createElement('div');
-                fallback.className = 'w-32 h-32 rounded-full bg-gradient-to-br from-blue-100 to-purple-100 border-4 border-blue-200 shadow-lg flex items-center justify-center text-5xl';
+                fallback.className = 'w-20 h-20 md:w-32 md:h-32 rounded-full bg-gradient-to-br from-blue-100 to-purple-100 border-2 md:border-4 border-blue-200 shadow-lg flex items-center justify-center text-3xl md:text-5xl';
                 fallback.textContent = '🐶';
                 target.parentElement?.appendChild(fallback);
               }}
@@ -1187,150 +1187,150 @@ export default function App() {
           </div>
         </div>
         
-        <nav className="space-y-2">
+        <nav className="flex md:flex-col gap-2 overflow-x-auto md:overflow-x-visible">
           <button
             onClick={() => setActiveTab("dashboard")}
-            className={`w-full flex items-center gap-3 px-4 py-3 text-left rounded-lg transition-colors ${
+            className={`flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2 md:py-3 text-left rounded-lg transition-colors whitespace-nowrap ${
               activeTab === "dashboard"
                 ? "bg-blue-100 text-blue-700 border border-blue-200"
                 : "text-gray-600 hover:bg-gray-100"
             }`}
           >
-            <Home size={20} />
-            <span className="font-medium">Dashboard</span>
+            <Home size={18} className="md:w-5 md:h-5" />
+            <span className="font-medium text-sm md:text-base">Dashboard</span>
           </button>
           
           <button
             onClick={() => setActiveTab("commands")}
-            className={`w-full flex items-center gap-3 px-4 py-3 text-left rounded-lg transition-colors ${
+            className={`flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2 md:py-3 text-left rounded-lg transition-colors whitespace-nowrap ${
               activeTab === "commands"
                 ? "bg-blue-100 text-blue-700 border border-blue-200"
                 : "text-gray-600 hover:bg-gray-100"
             }`}
           >
-            <Target size={20} />
-            <span className="font-medium">Commands</span>
+            <Target size={18} className="md:w-5 md:h-5" />
+            <span className="font-medium text-sm md:text-base">Commands</span>
           </button>
           
           <button
             onClick={() => setActiveTab("milestones")}
-            className={`w-full flex items-center gap-3 px-4 py-3 text-left rounded-lg transition-colors ${
+            className={`flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2 md:py-3 text-left rounded-lg transition-colors whitespace-nowrap ${
               activeTab === "milestones"
                 ? "bg-blue-100 text-blue-700 border border-blue-200"
                 : "text-gray-600 hover:bg-gray-100"
             }`}
           >
-            <Trophy size={20} />
-            <span className="font-medium">Milestones</span>
+            <Trophy size={18} className="md:w-5 md:h-5" />
+            <span className="font-medium text-sm md:text-base">Milestones</span>
           </button>
           
           <button
             onClick={() => setActiveTab("appointments")}
-            className={`w-full flex items-center gap-3 px-4 py-3 text-left rounded-lg transition-colors ${
+            className={`flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2 md:py-3 text-left rounded-lg transition-colors whitespace-nowrap ${
               activeTab === "appointments"
                 ? "bg-blue-100 text-blue-700 border border-blue-200"
                 : "text-gray-600 hover:bg-gray-100"
             }`}
           >
-            <Calendar size={20} />
-            <span className="font-medium">Appointments</span>
+            <Calendar size={18} className="md:w-5 md:h-5" />
+            <span className="font-medium text-sm md:text-base">Appointments</span>
           </button>
           
           <button
             onClick={() => setActiveTab("physical")}
-            className={`w-full flex items-center gap-3 px-4 py-3 text-left rounded-lg transition-colors ${
+            className={`flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2 md:py-3 text-left rounded-lg transition-colors whitespace-nowrap ${
               activeTab === "physical"
                 ? "bg-blue-100 text-blue-700 border border-blue-200"
                 : "text-gray-600 hover:bg-gray-100"
             }`}
           >
-            <Activity size={20} />
-            <span className="font-medium text-sm">Physical Development</span>
+            <Activity size={18} className="md:w-5 md:h-5" />
+            <span className="font-medium text-sm md:text-base">Physical</span>
           </button>
         </nav>
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 p-8">
+      <div className="flex-1 p-4 md:p-8">
         {activeTab === "dashboard" && (
           <div>
-            <h2 className="text-3xl font-bold text-gray-800 mb-8">Welcome back, {currentUser}!</h2>
+            <h2 className="text-xl md:text-3xl font-bold text-gray-800 mb-4 md:mb-8">Welcome back, {currentUser}!</h2>
             
             {/* Growth Chart */}
-            <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 mb-8">
-              <h3 className="text-2xl font-bold text-gray-800 mb-6">📈 Growth Timeline</h3>
+            <div className="bg-white p-4 md:p-6 rounded-lg shadow-sm border border-gray-200 mb-4 md:mb-8">
+              <h3 className="text-lg md:text-2xl font-bold text-gray-800 mb-4 md:mb-6">📈 Growth Timeline</h3>
 
-              <div className="space-y-4">
+              <div className="space-y-3 md:space-y-4">
                 <button 
                   onClick={() => navigateToWeek(8)}
-                  className="w-full p-4 bg-purple-50 border-2 border-purple-200 rounded-lg hover:bg-purple-100 hover:border-purple-300 transition-all cursor-pointer text-left"
+                  className="w-full p-3 md:p-4 bg-purple-50 border-2 border-purple-200 rounded-lg hover:bg-purple-100 hover:border-purple-300 transition-all cursor-pointer text-left"
                 >
                   <div className="flex justify-between items-center">
-                    <span className="font-bold text-lg">Week 8 - Adoption Day! 🏠</span>
-                    <span className="text-sm bg-purple-200 px-3 py-1 rounded-full">Week 8</span>
+                    <span className="font-bold text-sm md:text-lg">Week 8 - Adoption Day! 🏠</span>
+                    <span className="text-xs md:text-sm bg-purple-200 px-2 md:px-3 py-1 rounded-full">Week 8</span>
                   </div>
-                  <p className="text-gray-600 mt-2">Coming home</p>
-                  <p className="text-sm text-gray-500 mt-1">November 7th, 2025</p>
+                  <p className="text-sm md:text-base text-gray-600 mt-1 md:mt-2">Coming home</p>
+                  <p className="text-xs md:text-sm text-gray-500 mt-1">November 7th, 2025</p>
                 </button>
 
                 <button 
                   onClick={() => navigateToWeek(10)}
-                  className="w-full p-4 bg-blue-50 border-2 border-blue-200 rounded-lg hover:bg-blue-100 hover:border-blue-300 transition-all cursor-pointer text-left"
+                  className="w-full p-3 md:p-4 bg-blue-50 border-2 border-blue-200 rounded-lg hover:bg-blue-100 hover:border-blue-300 transition-all cursor-pointer text-left"
                 >
                   <div className="flex justify-between items-center">
-                    <span className="font-bold text-lg">Week 10 - First Vaccinations 💉</span>
-                    <span className="text-sm bg-blue-200 px-3 py-1 rounded-full">Week 10</span>
+                    <span className="font-bold text-sm md:text-lg">Week 10 - First Vaccinations 💉</span>
+                    <span className="text-xs md:text-sm bg-blue-200 px-2 md:px-3 py-1 rounded-full">Week 10</span>
                   </div>
-                  <p className="text-gray-600 mt-2">Begin vaccination schedule</p>
-                  <p className="text-sm text-gray-500 mt-1">November 21st, 2025</p>
+                  <p className="text-sm md:text-base text-gray-600 mt-1 md:mt-2">Begin vaccination schedule</p>
+                  <p className="text-xs md:text-sm text-gray-500 mt-1">November 21st, 2025</p>
                 </button>
 
                 <button 
                   onClick={() => navigateToWeek(12)}
-                  className="w-full p-4 bg-green-50 border-2 border-green-200 rounded-lg hover:bg-green-100 hover:border-green-300 transition-all cursor-pointer text-left"
+                  className="w-full p-3 md:p-4 bg-green-50 border-2 border-green-200 rounded-lg hover:bg-green-100 hover:border-green-300 transition-all cursor-pointer text-left"
                 >
                   <div className="flex justify-between items-center">
-                    <span className="font-bold text-lg">Week 12 - Socialization Period 🐕</span>
-                    <span className="text-sm bg-green-200 px-3 py-1 rounded-full">Week 12</span>
+                    <span className="font-bold text-sm md:text-lg">Week 12 - Socialization Period 🐕</span>
+                    <span className="text-xs md:text-sm bg-green-200 px-2 md:px-3 py-1 rounded-full">Week 12</span>
                   </div>
-                  <p className="text-gray-600 mt-2">Critical socialization window</p>
-                  <p className="text-sm text-gray-500 mt-1">December 5th, 2025</p>
+                  <p className="text-sm md:text-base text-gray-600 mt-1 md:mt-2">Critical socialization window</p>
+                  <p className="text-xs md:text-sm text-gray-500 mt-1">December 5th, 2025</p>
                 </button>
 
                 <button 
                   onClick={() => navigateToWeek(16)}
-                  className="w-full p-4 bg-yellow-50 border-2 border-yellow-200 rounded-lg hover:bg-yellow-100 hover:border-yellow-300 transition-all cursor-pointer text-left"
+                  className="w-full p-3 md:p-4 bg-yellow-50 border-2 border-yellow-200 rounded-lg hover:bg-yellow-100 hover:border-yellow-300 transition-all cursor-pointer text-left"
                 >
                   <div className="flex justify-between items-center">
-                    <span className="font-bold text-lg">Week 16 - Basic Training 📚</span>
-                    <span className="text-sm bg-yellow-200 px-3 py-1 rounded-full">Week 16</span>
+                    <span className="font-bold text-sm md:text-lg">Week 16 - Basic Training 📚</span>
+                    <span className="text-xs md:text-sm bg-yellow-200 px-2 md:px-3 py-1 rounded-full">Week 16</span>
                   </div>
-                  <p className="text-gray-600 mt-2">Start formal training</p>
-                  <p className="text-sm text-gray-500 mt-1">January 2nd, 2026</p>
+                  <p className="text-sm md:text-base text-gray-600 mt-1 md:mt-2">Start formal training</p>
+                  <p className="text-xs md:text-sm text-gray-500 mt-1">January 2nd, 2026</p>
                 </button>
 
                 <button 
                   onClick={() => navigateToWeek(20)}
-                  className="w-full p-4 bg-orange-50 border-2 border-orange-200 rounded-lg hover:bg-orange-100 hover:border-orange-300 transition-all cursor-pointer text-left"
+                  className="w-full p-3 md:p-4 bg-orange-50 border-2 border-orange-200 rounded-lg hover:bg-orange-100 hover:border-orange-300 transition-all cursor-pointer text-left"
                 >
                   <div className="flex justify-between items-center">
-                    <span className="font-bold text-lg">Week 20 - Teething Phase 🦷</span>
-                    <span className="text-sm bg-orange-200 px-3 py-1 rounded-full">Week 20</span>
+                    <span className="font-bold text-sm md:text-lg">Week 20 - Teething Phase 🦷</span>
+                    <span className="text-xs md:text-sm bg-orange-200 px-2 md:px-3 py-1 rounded-full">Week 20</span>
                   </div>
-                  <p className="text-gray-600 mt-2">Adult teeth coming in</p>
-                  <p className="text-sm text-gray-500 mt-1">January 30th, 2026</p>
+                  <p className="text-sm md:text-base text-gray-600 mt-1 md:mt-2">Adult teeth coming in</p>
+                  <p className="text-xs md:text-sm text-gray-500 mt-1">January 30th, 2026</p>
                 </button>
 
                 <button 
                   onClick={() => navigateToWeek(26)}
-                  className="w-full p-4 bg-pink-50 border-2 border-pink-200 rounded-lg hover:bg-pink-100 hover:border-pink-300 transition-all cursor-pointer text-left"
+                  className="w-full p-3 md:p-4 bg-pink-50 border-2 border-pink-200 rounded-lg hover:bg-pink-100 hover:border-pink-300 transition-all cursor-pointer text-left"
                 >
                   <div className="flex justify-between items-center">
-                    <span className="font-bold text-lg">Week 26 - 6 Month Milestone 🎉</span>
-                    <span className="text-sm bg-pink-200 px-3 py-1 rounded-full">Week 26</span>
+                    <span className="font-bold text-sm md:text-lg">Week 26 - 6 Month Milestone 🎉</span>
+                    <span className="text-xs md:text-sm bg-pink-200 px-2 md:px-3 py-1 rounded-full">Week 26</span>
                   </div>
-                  <p className="text-gray-600 mt-2">Rapid growth phase</p>
-                  <p className="text-sm text-gray-500 mt-1">March 13th, 2026</p>
+                  <p className="text-sm md:text-base text-gray-600 mt-1 md:mt-2">Rapid growth phase</p>
+                  <p className="text-xs md:text-sm text-gray-500 mt-1">March 13th, 2026</p>
                 </button>
 
                 <button 
@@ -1446,22 +1446,22 @@ export default function App() {
 
         {activeTab === "commands" && (
           <div>
-            <h2 className="text-3xl font-bold text-gray-800 mb-8">Training Commands by Age</h2>
+            <h2 className="text-xl md:text-3xl font-bold text-gray-800 mb-4 md:mb-8">Training Commands by Age</h2>
             
-            <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 mb-6">
-              <h3 className="text-xl font-semibold text-gray-800 mb-4">Add Custom Command</h3>
-              <div className="flex gap-3">
+            <div className="bg-white p-4 md:p-6 rounded-lg shadow-sm border border-gray-200 mb-4 md:mb-6">
+              <h3 className="text-lg md:text-xl font-semibold text-gray-800 mb-3 md:mb-4">Add Custom Command</h3>
+              <div className="flex flex-col sm:flex-row gap-2 md:gap-3">
                 <input
                   type="text"
                   value={customCommand}
                   onChange={(e) => setCustomCommand(e.target.value)}
                   placeholder="Enter command name..."
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="flex-1 px-3 md:px-4 py-2 text-sm md:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   onKeyPress={(e) => e.key === 'Enter' && addCustomCommand()}
                 />
                 <button
                   onClick={addCustomCommand}
-                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  className="px-4 md:px-6 py-2 text-sm md:text-base bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors whitespace-nowrap"
                 >
                   Add Command
                 </button>
@@ -1469,10 +1469,10 @@ export default function App() {
             </div>
 
             {/* Week 8-10: Foundation Training */}
-            <div id="week-8" className="mb-8 scroll-mt-4">
-              <div className="bg-purple-100 p-4 rounded-lg mb-4">
-                <h3 className="text-2xl font-bold text-purple-800">Week 8-10: Foundation Training 🐾</h3>
-                <p className="text-purple-700 mt-1">Building blocks for a well-behaved puppy</p>
+            <div id="week-8" className="mb-6 md:mb-8 scroll-mt-4">
+              <div className="bg-purple-100 p-3 md:p-4 rounded-lg mb-3 md:mb-4">
+                <h3 className="text-lg md:text-2xl font-bold text-purple-800">Week 8-10: Foundation Training 🐾</h3>
+                <p className="text-sm md:text-base text-purple-700 mt-1">Building blocks for a well-behaved puppy</p>
               </div>
               <div className="space-y-2">
                 {commands.filter(cmd => cmd.ageWeek === 8).map((command) => {
@@ -2110,7 +2110,7 @@ export default function App() {
 
         {activeTab === "milestones" && (
           <div>
-            <h2 className="text-3xl font-bold text-gray-800 mb-8">Training Milestones</h2>
+            <h2 className="text-xl md:text-3xl font-bold text-gray-800 mb-4 md:mb-8">Training Milestones</h2>
             
             <div className="space-y-2">
               {milestones.map((milestone) => {
@@ -2126,17 +2126,17 @@ export default function App() {
                     }`}
                   >
                     {/* Milestone Header - Always Visible */}
-                    <div className="flex items-center justify-between p-4">
+                    <div className="flex items-center justify-between p-3 md:p-4">
                       <button
                         onClick={() => toggleMilestoneExpanded(milestone.id)}
                         className="flex items-center gap-2 flex-1 text-left"
                       >
                         {isExpanded ? (
-                          <ChevronDown className="text-gray-500" size={20} />
+                          <ChevronDown className="text-gray-500" size={18} />
                         ) : (
-                          <ChevronRight className="text-gray-500" size={20} />
+                          <ChevronRight className="text-gray-500" size={18} />
                         )}
-                        <h3 className="text-lg font-semibold text-gray-800">{milestone.title}</h3>
+                        <h3 className="text-base md:text-lg font-semibold text-gray-800">{milestone.title}</h3>
                         {milestone.completed && (
                           <span className="ml-2 text-green-600">✓</span>
                         )}
@@ -2233,24 +2233,24 @@ export default function App() {
 
         {activeTab === "appointments" && (
           <div>
-            <div className="flex items-center justify-between mb-8">
-              <h2 className="text-3xl font-bold text-gray-800">Appointments & Reminders</h2>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 md:mb-8 gap-3">
+              <h2 className="text-xl md:text-3xl font-bold text-gray-800">Appointments & Reminders</h2>
               <button
                 onClick={() => setShowAppointmentModal(true)}
-                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center gap-2"
+                className="px-4 md:px-6 py-2 md:py-3 text-sm md:text-base bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center gap-2 whitespace-nowrap"
               >
-                <Calendar size={20} />
+                <Calendar size={18} className="md:w-5 md:h-5" />
                 Add Appointment
               </button>
             </div>
 
             {/* Upcoming Appointments */}
-            <div className="mb-8">
-              <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-                <Bell className="text-blue-600" size={24} />
+            <div className="mb-6 md:mb-8">
+              <h3 className="text-lg md:text-xl font-bold text-gray-800 mb-3 md:mb-4 flex items-center gap-2">
+                <Bell className="text-blue-600" size={20} />
                 Upcoming Appointments
               </h3>
-              <div className="space-y-4">
+              <div className="space-y-3 md:space-y-4">
                 {appointments
                   .filter(apt => !apt.completed && new Date(apt.date) >= new Date(new Date().toDateString()))
                   .sort((a, b) => new Date(a.date + ' ' + a.time).getTime() - new Date(b.date + ' ' + b.time).getTime())
@@ -2702,12 +2702,12 @@ export default function App() {
       {/* Meal Modal */}
       {showMealModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
-            <h3 className="text-xl font-bold mb-4 text-gray-800">
+          <div className="bg-white rounded-lg p-4 md:p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
+            <h3 className="text-lg md:text-xl font-bold mb-3 md:mb-4 text-gray-800">
               {editingLogId ? '✏️ Edit Meal' : '🍽️ Log Meal'}
             </h3>
 
-            <div className="space-y-4">
+            <div className="space-y-3 md:space-y-4">
               {/* Meal Type Selection */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Meal Type</label>
@@ -2837,12 +2837,12 @@ export default function App() {
       {/* Nap Modal */}
       {showNapModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
-            <h3 className="text-xl font-bold mb-4 text-gray-800">
+          <div className="bg-white rounded-lg p-4 md:p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
+            <h3 className="text-lg md:text-xl font-bold mb-3 md:mb-4 text-gray-800">
               {editingLogId ? '✏️ Edit Nap' : '😴 Log Nap'}
             </h3>
 
-            <div className="space-y-4">
+            <div className="space-y-3 md:space-y-4">
               {/* Start Time Input */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Start Time *</label>
