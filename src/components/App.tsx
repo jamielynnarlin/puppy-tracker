@@ -1501,9 +1501,11 @@ export default function App() {
                         </button>
                         
                         <div className="flex items-center gap-3">
-                          <span className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
-                            {logCount} log{logCount !== 1 ? 's' : ''}
-                          </span>
+                          {logCount > 0 && (
+                            <span className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
+                              {logCount} log{logCount !== 1 ? 's' : ''}
+                            </span>
+                          )}
                           {command.id === 1 && (
                             <>
                               <button
@@ -1822,9 +1824,11 @@ export default function App() {
                         </button>
                         
                         <div className="flex items-center gap-3">
-                          <span className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
-                            {logCount} log{logCount !== 1 ? 's' : ''}
-                          </span>
+                          {logCount > 0 && (
+                            <span className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
+                              {logCount} log{logCount !== 1 ? 's' : ''}
+                            </span>
+                          )}
                           <button
                             onClick={() => openPracticeModal(command.id)}
                             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
@@ -1927,9 +1931,11 @@ export default function App() {
                         </button>
                         
                         <div className="flex items-center gap-3">
-                          <span className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
-                            {logCount} log{logCount !== 1 ? 's' : ''}
-                          </span>
+                          {logCount > 0 && (
+                            <span className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
+                              {logCount} log{logCount !== 1 ? 's' : ''}
+                            </span>
+                          )}
                           <button
                             onClick={() => openPracticeModal(command.id)}
                             className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors text-sm font-medium"
@@ -2032,9 +2038,11 @@ export default function App() {
                         </button>
                         
                         <div className="flex items-center gap-3">
-                          <span className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
-                            {logCount} log{logCount !== 1 ? 's' : ''}
-                          </span>
+                          {logCount > 0 && (
+                            <span className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
+                              {logCount} log{logCount !== 1 ? 's' : ''}
+                            </span>
+                          )}
                           <button
                             onClick={() => openPracticeModal(command.id)}
                             className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium"
