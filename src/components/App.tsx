@@ -426,13 +426,14 @@ export default function App() {
       const transformedAppointments = appointmentsData.map((apt: any) => ({
         id: apt.id,
         title: apt.title,
+        type: 'other' as const,
         date: apt.date,
-        time: apt.time,
+        time: apt.time || '',
         location: apt.location,
         notes: apt.notes,
-        reminderEnabled: apt.reminder_enabled,
-        reminderTime: apt.reminder_time,
+        reminder: apt.reminder_enabled,
         completed: apt.completed,
+        createdBy: 'system',
       }));
 
       setCommands(transformedCommands);
