@@ -321,14 +321,12 @@ export default function App() {
   const [fearDuration, setFearDuration] = useState('');
   const [fearNotes, setFearNotes] = useState('');
 
-  // Load user session - TEMPORARILY DISABLED TO FORCE LOGIN SCREEN
+  // Load user session on mount
   useEffect(() => {
-    // Clear any existing session to show login screen
-    localStorage.removeItem("currentUser");
-    // const savedUser = localStorage.getItem("currentUser");
-    // if (savedUser) {
-    //   setCurrentUser(savedUser);
-    // }
+    const savedUser = localStorage.getItem("currentUser");
+    if (savedUser) {
+      setCurrentUser(savedUser);
+    }
   }, []);
 
   // Load data from Supabase on mount
@@ -1379,7 +1377,15 @@ export default function App() {
       <div className="flex-1 p-4 md:p-8">
         {activeTab === "dashboard" && (
           <div>
-            <h2 className="text-xl md:text-3xl font-bold text-gray-800 mb-4 md:mb-8">Welcome back, {currentUser}!</h2>
+            <div className="flex items-center justify-between mb-4 md:mb-8">
+              <h2 className="text-xl md:text-3xl font-bold text-gray-800">Welcome back, {currentUser}!</h2>
+              <button
+                onClick={handleLogout}
+                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors text-sm md:text-base font-medium"
+              >
+                Log Out
+              </button>
+            </div>
             
             {/* Growth Chart */}
             <div className="bg-white p-4 md:p-6 rounded-lg shadow-sm border border-gray-200 mb-4 md:mb-8">
