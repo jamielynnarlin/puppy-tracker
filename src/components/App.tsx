@@ -3,6 +3,16 @@ import { Home, Target, Trophy, Award, Camera, Calendar, Clock, Download, Bell, T
 import UserAuth from "./UserAuth";
 import { usePuppyDatabase } from "./database/usePuppyDatabase";
 import { DataMigration } from "./database/migration";
+import {
+  commandsService,
+  practiceLogsService,
+  pottyLogsService,
+  mealLogsService,
+  napLogsService,
+  milestonesService,
+  appointmentsService,
+  migrationService,
+} from "./database/supabaseService";
 
 interface PottyLog {
   id: number;
@@ -129,77 +139,16 @@ export default function App() {
   // FORCE NULL USER TO SHOW LOGIN SCREEN
   const [currentUser, setCurrentUser] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("dashboard");
+  const [isLoadingData, setIsLoadingData] = useState(true);
   
   // Debug log
   console.log("Current user state:", currentUser);
   
-  // Initialize commands from localStorage or use defaults
-  const [commands, setCommands] = useState<Command[]>(() => {
-    const savedCommands = localStorage.getItem("puppyCommands");
-    if (savedCommands) {
-      return JSON.parse(savedCommands);
-    }
-    return [
-      // Week 8-10 Commands
-      { id: 1, name: "Potty Training", practiced: false, ageWeek: 8 },
-      { id: 2, name: "Crate Training", practiced: false, ageWeek: 8 },
-      { id: 3, name: "Name Recognition", practiced: false, ageWeek: 8 },
-      { id: 4, name: "Sit", practiced: false, ageWeek: 8 },
-      { id: 5, name: "Come", practiced: false, ageWeek: 8 },
-      { id: 6, name: "Chewing on Toys", practiced: false, ageWeek: 8 },
-      { id: 7, name: "Socialization", practiced: false, ageWeek: 8 },
-      { id: 8, name: "Handling (paws, ears, mouth)", practiced: false, ageWeek: 8 },
-      
-      // Week 12-16 Commands
-      { id: 9, name: "Stay", practiced: false, ageWeek: 12 },
-      { id: 10, name: "Down", practiced: false, ageWeek: 12 },
-      { id: 11, name: "Leave It", practiced: false, ageWeek: 12 },
-      { id: 12, name: "Drop It", practiced: false, ageWeek: 12 },
-      { id: 13, name: "Leash Walking", practiced: false, ageWeek: 12 },
-      { id: 14, name: "Wait", practiced: false, ageWeek: 12 },
-      
-      // Week 20-26 Commands
-      { id: 15, name: "Heel", practiced: false, ageWeek: 20 },
-      { id: 16, name: "Place/Go to Bed", practiced: false, ageWeek: 20 },
-      { id: 17, name: "Quiet", practiced: false, ageWeek: 20 },
-      { id: 18, name: "Off", practiced: false, ageWeek: 20 },
-      { id: 19, name: "Settle", practiced: false, ageWeek: 20 },
-      
-      // Week 26-52 Advanced Commands
-      { id: 20, name: "Roll Over", practiced: false, ageWeek: 26 },
-      { id: 21, name: "Shake/Paw", practiced: false, ageWeek: 26 },
-      { id: 22, name: "Spin", practiced: false, ageWeek: 26 },
-      { id: 23, name: "Fetch", practiced: false, ageWeek: 26 },
-      { id: 24, name: "Distance Commands", practiced: false, ageWeek: 26 },
-      { id: 25, name: "Advanced Stay", practiced: false, ageWeek: 26 },
-    ];
-  });
-  // Initialize milestones from localStorage or use defaults
-  const [milestones, setMilestones] = useState<Milestone[]>(() => {
-    const savedMilestones = localStorage.getItem("puppyMilestones");
-    if (savedMilestones) {
-      return JSON.parse(savedMilestones);
-    }
-    return [
-      { id: 1, title: "First Vet Visit", completed: false, photo: null },
-      { id: 2, title: "First Walk", completed: false, photo: null },
-      { id: 3, title: "House Trained", completed: false, photo: null },
-      { id: 4, title: "Learned to Sit", completed: false, photo: null },
-      { id: 5, title: "First Successful Stay", completed: false, photo: null },
-      { id: 6, title: "Mastered Roll Over", completed: false, photo: null },
-    ];
-  });
-  
+  // Initialize state with empty arrays - will be loaded from Supabase
+  const [commands, setCommands] = useState<Command[]>([]);
+  const [milestones, setMilestones] = useState<Milestone[]>([]);
   const [customCommand, setCustomCommand] = useState("");
-  
-  // Initialize appointments from localStorage or use defaults
-  const [appointments, setAppointments] = useState<Appointment[]>(() => {
-    const savedAppointments = localStorage.getItem("puppyAppointments");
-    if (savedAppointments) {
-      return JSON.parse(savedAppointments);
-    }
-    return [];
-  });
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
   
   // Potty training states
   const [showPottyModal, setShowPottyModal] = useState(false);
@@ -382,35 +331,124 @@ export default function App() {
     // }
   }, []);
 
-  // Migrate data from localStorage to database on first load
+  // Load data from Supabase on mount
   useEffect(() => {
-    const migrateData = async () => {
-      try {
-        await DataMigration.migrateFromLocalStorage();
-      } catch (error) {
-        console.error('Migration error:', error);
-      }
-    };
-    migrateData();
+    loadDataFromSupabase();
   }, []);
 
-  // Save commands to localStorage
-  useEffect(() => {
-    localStorage.setItem("puppyCommands", JSON.stringify(commands));
-  }, [commands]);
+  async function loadDataFromSupabase() {
+    try {
+      setIsLoadingData(true);
+      console.log('🔄 Loading data from Supabase...');
 
-  // Save milestones to localStorage
-  useEffect(() => {
-    localStorage.setItem("puppyMilestones", JSON.stringify(milestones));
-  }, [milestones]);
+      // Migrate localStorage data if needed (first time only)
+      if (!migrationService.isMigrated()) {
+        console.log('📦 Migrating data from localStorage...');
+        await migrationService.migrateFromLocalStorage();
+      }
 
-  // Save appointments to localStorage
-  useEffect(() => {
-    localStorage.setItem("puppyAppointments", JSON.stringify(appointments));
-  }, [appointments]);
+      // Load all data
+      const [commandsData, milestonesData, appointmentsData] = await Promise.all([
+        commandsService.getAll(),
+        milestonesService.getAll(),
+        appointmentsService.getAll(),
+      ]);
 
-  // Note: Physical development data (weight, tooth, grooming, fear logs) 
-  // are now saved automatically via the database hook, no need for localStorage
+      // Transform and load commands with their logs
+      const transformedCommands = await Promise.all(
+        commandsData.map(async (cmd) => {
+          const [practiceLogs, pottyLogs, mealLogs, napLogs] = await Promise.all([
+            practiceLogsService.getByCommandId(cmd.id),
+            pottyLogsService.getByCommandId(cmd.id),
+            mealLogsService.getByCommandId(cmd.id),
+            napLogsService.getByCommandId(cmd.id),
+          ]);
+
+          return {
+            id: cmd.id,
+            name: cmd.name,
+            practiced: false,
+            ageWeek: cmd.age_week,
+            description: cmd.description,
+            isCustom: cmd.is_custom,
+            practiceLogs: practiceLogs.map((log: any) => ({
+              id: log.id,
+              date: log.date,
+              time: log.time,
+              attempts: log.attempts,
+              distractions: log.distractions,
+              reliability: log.reliability,
+              notes: log.notes,
+              loggedBy: log.logged_by,
+            })),
+            pottyLogs: pottyLogs.map((log: any) => ({
+              id: log.id,
+              type: log.type,
+              time: log.time,
+              location: log.location,
+              loggedBy: log.logged_by,
+              date: log.date,
+              notes: log.notes,
+            })),
+            mealLogs: mealLogs.map((log: any) => ({
+              id: log.id,
+              mealType: log.meal_type,
+              time: log.time,
+              amount: log.amount,
+              food: log.food,
+              loggedBy: log.logged_by,
+              date: log.date,
+              notes: log.notes,
+            })),
+            napLogs: napLogs.map((log: any) => ({
+              id: log.id,
+              startTime: log.start_time,
+              endTime: log.end_time,
+              location: log.location,
+              loggedBy: log.logged_by,
+              date: log.date,
+              notes: log.notes,
+            })),
+          };
+        })
+      );
+
+      const transformedMilestones = milestonesData.map((ms: any) => ({
+        id: ms.id,
+        title: ms.title,
+        description: ms.description,
+        completed: ms.completed,
+        completedDate: ms.completed_date,
+        photo: ms.photo_url,
+        notes: ms.notes,
+      }));
+
+      const transformedAppointments = appointmentsData.map((apt: any) => ({
+        id: apt.id,
+        title: apt.title,
+        date: apt.date,
+        time: apt.time,
+        location: apt.location,
+        notes: apt.notes,
+        reminderEnabled: apt.reminder_enabled,
+        reminderTime: apt.reminder_time,
+        completed: apt.completed,
+      }));
+
+      setCommands(transformedCommands);
+      setMilestones(transformedMilestones);
+      setAppointments(transformedAppointments);
+
+      console.log('✅ Data loaded from Supabase successfully!');
+    } catch (error) {
+      console.error('❌ Error loading from Supabase:', error);
+    } finally {
+      setIsLoadingData(false);
+    }
+  }
+
+  // Note: Data is now saved to Supabase in real-time via individual functions
+  // No more localStorage syncing needed!
 
   const handleLogin = (username: string) => {
     setCurrentUser(username);
@@ -454,7 +492,7 @@ export default function App() {
     ));
   };
 
-  const logPottyBreak = () => {
+  const logPottyBreak = async () => {
     if (!currentUser) return;
     
     const now = new Date();
@@ -468,11 +506,31 @@ export default function App() {
       notes: pottyNotes || undefined
     };
     
-    setCommands(commands.map(cmd => 
-      cmd.id === 1 // Potty Training command ID
-        ? { ...cmd, pottyLogs: [...(cmd.pottyLogs || []), newLog] }
-        : cmd
-    ));
+    try {
+      // Save to Supabase
+      await pottyLogsService.create({
+        command_id: 1, // Potty Training command ID
+        type: pottyType,
+        time: newLog.time,
+        location: pottyLocation,
+        logged_by: currentUser,
+        date: newLog.date,
+        notes: pottyNotes || undefined,
+      });
+      
+      // Update local state
+      setCommands(commands.map(cmd => 
+        cmd.id === 1 // Potty Training command ID
+          ? { ...cmd, pottyLogs: [...(cmd.pottyLogs || []), newLog] }
+          : cmd
+      ));
+      
+      console.log('✅ Potty log saved to Supabase');
+    } catch (error) {
+      console.error('❌ Error saving potty log:', error);
+      alert('Failed to save potty log. Please try again.');
+      return;
+    }
     
     // Reset form
     setShowPottyModal(false);
@@ -482,13 +540,20 @@ export default function App() {
     setPottyNotes('');
   };
 
-  const deletePottyLog = (logId: number) => {
+  const deletePottyLog = async (logId: number) => {
     if (window.confirm('Are you sure you want to delete this potty log?')) {
-      setCommands(commands.map(cmd => 
-        cmd.id === 1 // Potty Training command ID
-          ? { ...cmd, pottyLogs: cmd.pottyLogs?.filter(log => log.id !== logId) || [] }
-          : cmd
-      ));
+      try {
+        await pottyLogsService.delete(logId);
+        setCommands(commands.map(cmd => 
+          cmd.id === 1 // Potty Training command ID
+            ? { ...cmd, pottyLogs: cmd.pottyLogs?.filter(log => log.id !== logId) || [] }
+            : cmd
+        ));
+        console.log('✅ Potty log deleted from Supabase');
+      } catch (error) {
+        console.error('❌ Error deleting potty log:', error);
+        alert('Failed to delete potty log. Please try again.');
+      }
     }
   };
 
@@ -507,21 +572,36 @@ export default function App() {
     }
   };
 
-  const updatePottyLog = () => {
+  const updatePottyLog = async () => {
     if (!currentUser || editingLogId === null || editingCommandId === null) return;
     
-    setCommands(commands.map(cmd => 
-      cmd.id === editingCommandId
-        ? {
-            ...cmd,
-            pottyLogs: cmd.pottyLogs?.map(log =>
-              log.id === editingLogId
-                ? { ...log, type: pottyType, location: pottyLocation, time: pottyTime, notes: pottyNotes || undefined }
-                : log
-            )
-          }
+    try {
+      await pottyLogsService.update(editingLogId, {
+        type: pottyType,
+        location: pottyLocation,
+        time: pottyTime,
+        notes: pottyNotes || undefined,
+      });
+      
+      setCommands(commands.map(cmd => 
+        cmd.id === editingCommandId
+          ? {
+              ...cmd,
+              pottyLogs: cmd.pottyLogs?.map(log =>
+                log.id === editingLogId
+                  ? { ...log, type: pottyType, location: pottyLocation, time: pottyTime, notes: pottyNotes || undefined }
+                  : log
+              )
+            }
         : cmd
-    ));
+      ));
+      
+      console.log('✅ Potty log updated in Supabase');
+    } catch (error) {
+      console.error('❌ Error updating potty log:', error);
+      alert('Failed to update potty log. Please try again.');
+      return;
+    }
     
     // Reset form
     setShowPottyModal(false);
@@ -559,7 +639,7 @@ export default function App() {
     window.URL.revokeObjectURL(url);
   };
 
-  const logMeal = () => {
+  const logMeal = async () => {
     if (!currentUser) return;
     
     const now = new Date();
@@ -574,11 +654,30 @@ export default function App() {
       notes: mealNotes || undefined
     };
     
-    setCommands(commands.map(cmd => 
-      cmd.id === 1 // Potty Training command ID
-        ? { ...cmd, mealLogs: [...(cmd.mealLogs || []), newLog] }
-        : cmd
-    ));
+    try {
+      await mealLogsService.create({
+        command_id: 1,
+        meal_type: mealType,
+        time: newLog.time,
+        amount: mealAmount || undefined,
+        food: mealFood || undefined,
+        logged_by: currentUser,
+        date: newLog.date,
+        notes: mealNotes || undefined,
+      });
+      
+      setCommands(commands.map(cmd => 
+        cmd.id === 1
+          ? { ...cmd, mealLogs: [...(cmd.mealLogs || []), newLog] }
+          : cmd
+      ));
+      
+      console.log('✅ Meal log saved to Supabase');
+    } catch (error) {
+      console.error('❌ Error saving meal log:', error);
+      alert('Failed to save meal log. Please try again.');
+      return;
+    }
     
     // Reset form
     setShowMealModal(false);
@@ -589,13 +688,20 @@ export default function App() {
     setMealNotes('');
   };
 
-  const deleteMealLog = (logId: number) => {
+  const deleteMealLog = async (logId: number) => {
     if (window.confirm('Are you sure you want to delete this meal log?')) {
-      setCommands(commands.map(cmd => 
-        cmd.id === 1 // Potty Training command ID
-          ? { ...cmd, mealLogs: cmd.mealLogs?.filter(log => log.id !== logId) || [] }
-          : cmd
-      ));
+      try {
+        await mealLogsService.delete(logId);
+        setCommands(commands.map(cmd => 
+          cmd.id === 1
+            ? { ...cmd, mealLogs: cmd.mealLogs?.filter(log => log.id !== logId) || [] }
+            : cmd
+        ));
+        console.log('✅ Meal log deleted from Supabase');
+      } catch (error) {
+        console.error('❌ Error deleting meal log:', error);
+        alert('Failed to delete meal log. Please try again.');
+      }
     }
   };
 
@@ -650,7 +756,7 @@ export default function App() {
     setEditingCommandId(null);
   };
 
-  const logNap = () => {
+  const logNap = async () => {
     if (!currentUser) return;
     
     const now = new Date();
@@ -664,11 +770,29 @@ export default function App() {
       notes: napNotes || undefined
     };
     
-    setCommands(commands.map(cmd => 
-      cmd.id === 1 // Potty Training command ID
-        ? { ...cmd, napLogs: [...(cmd.napLogs || []), newLog] }
-        : cmd
-    ));
+    try {
+      await napLogsService.create({
+        command_id: 1,
+        start_time: newLog.startTime,
+        end_time: napEndTime || undefined,
+        location: napLocation,
+        logged_by: currentUser,
+        date: newLog.date,
+        notes: napNotes || undefined,
+      });
+      
+      setCommands(commands.map(cmd => 
+        cmd.id === 1
+          ? { ...cmd, napLogs: [...(cmd.napLogs || []), newLog] }
+          : cmd
+      ));
+      
+      console.log('✅ Nap log saved to Supabase');
+    } catch (error) {
+      console.error('❌ Error saving nap log:', error);
+      alert('Failed to save nap log. Please try again.');
+      return;
+    }
     
     // Reset form
     setShowNapModal(false);
