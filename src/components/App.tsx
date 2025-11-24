@@ -339,10 +339,10 @@ export default function App() {
       setIsLoadingData(true);
       console.log('🔄 Loading data from Supabase...');
 
-      // Migrate localStorage data if needed (first time only)
+      // Mark migration as complete to prevent re-running
       if (!migrationService.isMigrated()) {
-        console.log('📦 Migrating data from localStorage...');
-        await migrationService.migrateFromLocalStorage();
+        console.log('✅ Marking migration as complete (skipping migration)');
+        localStorage.setItem('supabase_migrated', 'true');
       }
 
       // Load all data

@@ -343,9 +343,12 @@ export const appointmentsService = {
 export const migrationService = {
   async migrateFromLocalStorage() {
     try {
-      // Migrate commands
+      // Check if there are already commands in Supabase
+      const existingCommands = await commandsService.getAll();
+      
+      // Migrate commands only if localStorage has data and we should migrate
       const savedCommands = localStorage.getItem('puppyCommands');
-      if (savedCommands) {
+      if (savedCommands && existingCommands.length === 0) {
         const commands = JSON.parse(savedCommands);
         for (const cmd of commands) {
           await commandsService.create({
@@ -356,6 +359,8 @@ export const migrationService = {
           });
         }
         console.log('✅ Migrated commands from localStorage');
+      } else if (existingCommands.length > 0) {
+        console.log('ℹ️ Commands already exist in Supabase, skipping migration');
       }
 
       // Migrate milestones
